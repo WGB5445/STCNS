@@ -1,4 +1,4 @@
-build/
-storage/
-dev/account_vaults/
-dev/starcoindb/
+smart_contract/build/
+smart_contract/storage/
+smart_contract/dev/account_vaults/
+smart_contract/dev/starcoindb/
