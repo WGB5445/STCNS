@@ -1,0 +1,4 @@
+build/
+storage/
+dev/account_vaults/
+dev/starcoindb/
