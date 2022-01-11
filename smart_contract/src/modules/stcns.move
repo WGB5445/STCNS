@@ -1,5 +1,5 @@
 address 0x413c244e089787d792f76cf8a756c13c {
-    module stcns1{
+    module stcns3{
 
         
         use 0x1::Vector;
@@ -12,6 +12,10 @@ address 0x413c244e089787d792f76cf8a756c13c {
 
 
        const ADMAIN_ADDRESS : address = @0x413c244e089787d792f76cf8a756c13c;
+       const ERR_ADMIN_NOT_INIT:u64 = 1000;
+        const ERR_DOMAIN_TOO_LANG :u64 = 2000;
+        const ERR_DOMAIN_HAVE_DOT : u64 = 2001;
+        const ERR_DOMAIN_IS_REGISTERED : u64 = 2002;
         const ERR_NOT_CapAddress : u64 = 1001;
         struct STCns_List has store,key{
             ns : vector<NFT::NFT<STCns_Meta,STCns_Body>>
@@ -79,7 +83,7 @@ address 0x413c244e089787d792f76cf8a756c13c {
         
         struct STCns_Subdomains_Record has copy,store,drop,key{
             STC_address         :   address     ,
-            ETH_address         :   address     ,
+            ETH_address         :   vector<u8>    ,
             BTC_address         :   vector<u8>  ,
             LTC_address         :   vector<u8>  ,
 
@@ -154,34 +158,23 @@ address 0x413c244e089787d792f76cf8a756c13c {
             };
             true
        }
-       public fun count_cmp(a:u8,b:u8):bool{
-           if(a > b){
-              return  true
-           };
-            if( a < b ){
-                return false
-           };
-           true
-       }
-        public fun count():u64 {
-            10
-        }
+
 
         fun is_gotime(addr:&address,domain:&vector<u8>):bool acquires STCns_List{
             let index = find_address_nft_index(addr,domain);
             if(Option::is_none<u64>(&index)){
-                return false
+                return true
             }else{
                 let list = borrow_global<STCns_List>(*addr);
                 let nft = Vector::borrow<NFT::NFT<STCns_Meta,STCns_Body>>(&list.ns, *Option::borrow<u64>(&index));
                 let expiration_time = Timestamp::now_seconds();
                 let meta = NFT::get_type_meta<STCns_Meta,STCns_Body>(nft);
                 if(*&meta.Expiration_time < expiration_time){
-                    return true
+                    return false
                 }
                 
             };
-            return false
+            return true
         }
 
         fun find_address_nft_index(addr:&address,domain:&vector<u8>):Option::Option<u64>  acquires STCns_List{ 
@@ -200,19 +193,109 @@ address 0x413c244e089787d792f76cf8a756c13c {
             };
             return Option::none<u64>()
         }
-        fun change_owner(account:&signer,domain:&vector<u8>) acquires STCns_List{
+        fun change_owner(account:&signer,domain:&vector<u8>) acquires STCns_List ,Owner_Domains{
             let addr = Signer::address_of(account);
             if(is_gotime(&addr,domain)){
-
+               abort(1020)
             };
+            let owner_domains =  borrow_global_mut<Owner_Domains>(ADMAIN_ADDRESS);
+            let domains = *&mut owner_domains.Domains;
+            let length = Vector::length<Owner_Data>(&domains);
+            let i:u64 = 0; 
+            while(i < length){
+                let _domain = Vector::borrow<Owner_Data>(&domains,i);
+                if(Utils_vector_comp(&_domain.Domain_name,domain)){
+                    let d = Vector::borrow_mut<Owner_Data>(&mut domains, i);
+                    d.Owner = addr;
+                    break
+                };
+                i = i + 1;
+            };
+
             // let meta = Get_domain_nftMeta(&addr,domain);
 
         }
        
+        fun change_rsolver_stcaddress(record:&mut STCns_Dommains_Record,addr:&address) {
+            record.STC_address = *addr;
+        }
 
-       
+        fun change_rsolver_ethaddress(record:&mut STCns_Dommains_Record,addr:&vector<u8>) {
+            let length = Vector::length<u8>(&record.ETH_address);
+            let i = 0;
+            while(i < length){
+                Vector::pop_back<u8>(&mut record.ETH_address);
+                i = i + 1;
+            };
+            Vector::append<u8>(&mut record.ETH_address, *addr);
+        }
+        fun change_rsolver_btcaddress(record:&mut STCns_Dommains_Record,addr:&vector<u8>) {
+            let length = Vector::length<u8>(&record.BTC_address);
+            let i = 0;
+            while(i < length){
+                Vector::pop_back<u8>(&mut record.BTC_address);
+                i = i + 1;
+            };
+            Vector::append<u8>(&mut record.BTC_address, *addr);
+        }
+        fun change_rsolver_ltcaddress(record:&mut STCns_Dommains_Record,addr:&vector<u8>) {
+            let length = Vector::length<u8>(&record.LTC_address);
+            let i = 0;
+            while(i < length){
+                Vector::pop_back<u8>(&mut record.LTC_address);
+                i = i + 1;
+            };
+            Vector::append<u8>(&mut record.LTC_address, *addr);
+        }
+        fun change_rsolver_email(record:&mut STCns_Dommains_Record,addr:&vector<u8>) {
+            let length = Vector::length<u8>(&record.Email);
+            let i = 0;
+            while(i < length){
+                Vector::pop_back<u8>(&mut record.Email);
+                i = i + 1;
+            };
+            Vector::append<u8>(&mut record.Email, *addr);
+        }
+        fun change_rsolver_website(record:&mut STCns_Dommains_Record,addr:&vector<u8>) {
+            let length = Vector::length<u8>(&record.Website);
+            let i = 0;
+            while(i < length){
+                Vector::pop_back<u8>(&mut record.Website);
+                i = i + 1;
+            };
+            Vector::append<u8>(&mut record.Website, *addr);
+        }
 
-        public fun mint(account:&signer,domain:&vector<u8>,year:u64) acquires ShardCap ,STCns_List{
+        fun change_rsolver_twitter(record:&mut STCns_Dommains_Record,addr:&vector<u8>) {
+            let length = Vector::length<u8>(&record.com_twitter);
+            let i = 0;
+            while(i < length){
+                Vector::pop_back<u8>(&mut record.com_twitter);
+                i = i + 1;
+            };
+            Vector::append<u8>(&mut record.com_twitter, *addr);
+        }
+        fun change_rsolver_discord(record:&mut STCns_Dommains_Record,addr:&vector<u8>) {
+            let length = Vector::length<u8>(&record.com_discord);
+            let i = 0;
+            while(i < length){
+                Vector::pop_back<u8>(&mut record.com_discord);
+                i = i + 1;
+            };
+            Vector::append<u8>(&mut record.com_discord, *addr);
+        }
+
+        fun change_rsolver_github(record:&mut STCns_Dommains_Record,addr:&vector<u8>) {
+            let length = Vector::length<u8>(&record.com_github);
+            let i = 0;
+            while(i < length){
+                Vector::pop_back<u8>(&mut record.com_github);
+                i = i + 1;
+            };
+            Vector::append<u8>(&mut record.com_github, *addr);
+        }
+        
+        fun mint(account:&signer,domain:&vector<u8>,year:u64) acquires ShardCap ,STCns_List{
             let account_address =  Signer::address_of(account);
 
             let meta = STCns_Meta {
@@ -318,19 +401,7 @@ address 0x413c244e089787d792f76cf8a756c13c {
             };
             return Option::none<STCns_Meta>()
         }
-        fun domain_register_rule(domain:&vector<u8>){
-            let length = Vector::length<u8>(domain);
-            
-            assert(length <= 50u64, 1010);
-            
-            let i = 0;
-            while(i < length){
-                assert(*Vector::borrow<u8>(domain, i) != 46u8, 1011);
-                i = i + 1;
-            };
-
-            
-        }
+        
         public (script) fun init(account:signer){
             let account_address =  Signer::address_of(&account);
             assert(ADMAIN_ADDRESS == account_address,  Errors::invalid_argument(ERR_NOT_CapAddress));
@@ -344,15 +415,49 @@ address 0x413c244e089787d792f76cf8a756c13c {
             let nft_mint_cap = NFT::remove_mint_capability<STCns_Meta>(&account);
             move_to(&account, ShardCap {mint_cap:nft_mint_cap});
         }
-        public (script) fun register_domain(_account:signer,_domain:vector<u8>,_year:u64) acquires Owner_Domains , ShardCap ,STCns_List{
-                domain_register_rule(&_domain);
-                Register(&_account,&_domain,_year);
+        public fun check_admin_is_init():bool  {
+           return exists<Owner_Domains>(ADMAIN_ADDRESS)
+        }
+        public fun check_address_is_init(addr:&address):bool {
+            return exists<Owner_Domains>(*addr)
+        }
+
+        public fun check_register_domain(domain:&vector<u8>):bool{
+            let length = Vector::length<u8>(domain);
+            assert(length <= 50u64, ERR_DOMAIN_TOO_LANG);
+            let i = 0;
+            while(i < length){
+                assert(*Vector::borrow<u8>(domain, i) != 46u8, ERR_DOMAIN_HAVE_DOT);
+                i = i + 1;
+            };
+            true
+        }
+
+        public fun check_domain_is_registered(domain:&vector<u8>):bool acquires Owner_Domains{
+            assert(check_admin_is_init(), ERR_ADMIN_NOT_INIT);
+            let owner_domains = borrow_global<Owner_Domains>(ADMAIN_ADDRESS);
+            let owner_datas = *&owner_domains.Domains;
+            let length = Vector::length<Owner_Data>(&owner_datas);
+            let i = 0; 
+            while(i < length){
+                let owner_data = Vector::borrow<Owner_Data>(&owner_datas,i);
+                if(Utils_vector_comp(&owner_data.Domain_name,domain)){
+                    return true
+                };
+                i = i + 1;
+            };
+            return false
+        }
+
+        public (script) fun register_domain(account:signer,domain:vector<u8>,year:u64) acquires Owner_Domains {//, ShardCap ,STCns_List{
+                assert(check_admin_is_init(), ERR_ADMIN_NOT_INIT);
+                check_register_domain(&domain);
+                assert(!check_domain_is_registered(&domain), ERR_DOMAIN_IS_REGISTERED);
+                // Register(&_account,&_domain,_year);
         }
         public (script) fun Resolution_stcaddress(domain:vector<u8>):address acquires Owner_Domains ,STCns_List{
-          let owner = Get_domain_owner(&domain);
-          if(owner == @0x0){
-             return @0x0
-          };
+            let owner = Get_domain_owner(&domain);
+            assert(owner != @0x0, 2000);
             let op_stcns_Body = Get_domain_nftBody(&owner,&domain);
             if(Option::is_some<STCns_Body>(&op_stcns_Body)){
             let stcn_body = Option::borrow<STCns_Body>(&op_stcns_Body);
@@ -366,8 +471,25 @@ address 0x413c244e089787d792f76cf8a756c13c {
                         
                 }
             };
-            @0x0
-
+           abort(2001)
+        }
+        public (script) fun Resolution_ethaddress(domain:vector<u8>):vector<u8> acquires Owner_Domains ,STCns_List{
+            let owner = Get_domain_owner(&domain);
+            assert(owner != @0x0, 2000);
+            let op_stcns_Body = Get_domain_nftBody(&owner,&domain);
+            if(Option::is_some<STCns_Body>(&op_stcns_Body)){
+            let stcn_body = Option::borrow<STCns_Body>(&op_stcns_Body);
+                let resolver = *&stcn_body.Resolver;
+                let domains_tree = rsolver_subdomain(&domain);
+                let length = Vector::length<vector<u8>>(&domains_tree);
+                if(length == 1){
+                    let addr = *&(*&(*&resolver.Domain).Record).ETH_address;
+                    return addr
+                }else{
+                        
+                }
+            };
+           abort(2001)
         }
     }
 }
