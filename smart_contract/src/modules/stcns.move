@@ -90,11 +90,12 @@ address 0x413c244e089787d792f76cf8a756c13c {
             com_github          :   vector<u8>  , 
         }
 
-        struct ShardMinCap has key, store{
-            cap: NFT::MintCapability<STCns_Meta>,
+        struct ShardCap has key, store{
+            mint_cap: NFT::MintCapability<STCns_Meta>,
+
         }
         
-        fun register (_account:&signer, _domain: &vector<u8> ,   _year:  u64 )acquires  Owner_Domains , ShardMinCap ,STCns_List{
+        fun register (_account:&signer, _domain: &vector<u8> ,   _year:  u64 )acquires  Owner_Domains , ShardCap ,STCns_List{
                let owner_domains =  borrow_global_mut<Owner_Domains>(ADMAIN_ADDRESS);
                let domains = &mut owner_domains.Domains;
                Vector::push_back<Owner_Data>(domains,Owner_Data{
@@ -112,7 +113,7 @@ address 0x413c244e089787d792f76cf8a756c13c {
 
        }
        
-       public fun   Register (_account:&signer,domain:&vector<u8>,_year:u64) acquires Owner_Domains , ShardMinCap ,STCns_List{
+       public fun   Register (_account:&signer,domain:&vector<u8>,_year:u64) acquires Owner_Domains , ShardCap ,STCns_List{
                if( IsRegister(domain)){
                     abort(1001)
                }
@@ -166,16 +167,56 @@ address 0x413c244e089787d792f76cf8a756c13c {
             10
         }
 
+        fun is_gotime(addr:&address,domain:&vector<u8>):bool acquires STCns_List{
+            let index = find_address_nft_index(addr,domain);
+            if(Option::is_none<u64>(&index)){
+                return false
+            }else{
+                let list = borrow_global<STCns_List>(*addr);
+                let nft = Vector::borrow<NFT::NFT<STCns_Meta,STCns_Body>>(&list.ns, *Option::borrow<u64>(&index));
+                let expiration_time = Timestamp::now_seconds();
+                let meta = NFT::get_type_meta<STCns_Meta,STCns_Body>(nft);
+                if(*&meta.Expiration_time < expiration_time){
+                    return true
+                }
+                
+            };
+            return false
+        }
 
+        fun find_address_nft_index(addr:&address,domain:&vector<u8>):Option::Option<u64>  acquires STCns_List{ 
+            let list = borrow_global<STCns_List>(*addr);
+            let length = Vector::length<NFT::NFT<STCns_Meta,STCns_Body>>(&list.ns);
+            let i = 0;
+
+            while(i < length){
+                let nft = Vector::borrow<NFT::NFT<STCns_Meta,STCns_Body>>(&list.ns,i);
+                let _domain = &NFT::get_type_meta<STCns_Meta,STCns_Body>(nft).Domain_name;
+                if(Utils_vector_comp(_domain,domain)){
+                   return Option::some<u64>(i)
+               };
+                
+                i = i + 1;
+            };
+            return Option::none<u64>()
+        }
+        fun change_owner(account:&signer,domain:&vector<u8>) acquires STCns_List{
+            let addr = Signer::address_of(account);
+            if(is_gotime(&addr,domain)){
+
+            };
+            // let meta = Get_domain_nftMeta(&addr,domain);
+
+        }
        
 
        
 
-        public fun mint(account:&signer,domain:&vector<u8>,year:u64) acquires ShardMinCap ,STCns_List{
+        public fun mint(account:&signer,domain:&vector<u8>,year:u64) acquires ShardCap ,STCns_List{
             let account_address =  Signer::address_of(account);
 
             let meta = STCns_Meta {
-                Name:   x"68656c6c6f",
+                Name:   x"7374636e73",
                 Domain_name: *domain,
                 Registrant: account_address,
                 Controller: account_address,
@@ -203,8 +244,8 @@ address 0x413c244e089787d792f76cf8a756c13c {
                     Subdomains        :Vector::empty<STCns_Subdomains>()
                 }
             };
-            let cap = borrow_global_mut<ShardMinCap>(ADMAIN_ADDRESS);
-            let nft = NFT::mint_with_cap_v2<STCns_Meta,STCns_Body>(account_address,&mut cap.cap,NFT::new_meta(x"7374636e73",x"7374636e73"),meta,body);
+            let cap = borrow_global_mut<ShardCap>(ADMAIN_ADDRESS);
+            let nft = NFT::mint_with_cap_v2<STCns_Meta,STCns_Body>(account_address,&mut cap.mint_cap,NFT::new_meta(x"7374636e73",x"7374636e73"),meta,body);
             let list = borrow_global_mut<STCns_List>(account_address);
             Vector::push_back<NFT::NFT<STCns_Meta,STCns_Body>>(&mut list.ns, nft);
         }
@@ -261,6 +302,22 @@ address 0x413c244e089787d792f76cf8a756c13c {
             };
             return Option::none<STCns_Body>()
         }
+        public fun Get_domain_nftMeta(addr:&address, domain:&vector<u8>):Option::Option<STCns_Meta> acquires STCns_List{
+            let list = borrow_global<STCns_List>(*addr);
+            let length = Vector::length<NFT::NFT<STCns_Meta,STCns_Body>>(&list.ns);
+            let i = 0;
+
+            while(i < length){
+                let nft = Vector::borrow<NFT::NFT<STCns_Meta,STCns_Body>>(&list.ns,i);
+                let _domain = &NFT::get_type_meta<STCns_Meta,STCns_Body>(nft).Domain_name;
+                if(Utils_vector_comp(_domain,domain)){
+                   return Option::some(*NFT::get_type_meta<STCns_Meta,STCns_Body>(nft))
+               };
+                
+                i = i + 1;
+            };
+            return Option::none<STCns_Meta>()
+        }
         fun domain_register_rule(domain:&vector<u8>){
             let length = Vector::length<u8>(domain);
             
@@ -285,9 +342,9 @@ address 0x413c244e089787d792f76cf8a756c13c {
             };
             NFT::register_v2<STCns_Meta>(&account,NFT::new_meta(x"68656c6c6f20776f726c64",x"68656c6c6f20776f726c64"));
             let nft_mint_cap = NFT::remove_mint_capability<STCns_Meta>(&account);
-            move_to(&account, ShardMinCap {cap:nft_mint_cap});
+            move_to(&account, ShardCap {mint_cap:nft_mint_cap});
         }
-        public (script) fun register_domain(_account:signer,_domain:vector<u8>,_year:u64) acquires Owner_Domains , ShardMinCap ,STCns_List{
+        public (script) fun register_domain(_account:signer,_domain:vector<u8>,_year:u64) acquires Owner_Domains , ShardCap ,STCns_List{
                 domain_register_rule(&_domain);
                 Register(&_account,&_domain,_year);
         }
