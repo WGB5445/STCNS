@@ -2,14 +2,16 @@ address 0x413c244e089787d792f76cf8a756c13c {
     module STCNS{
         use 0x1::Vector;
         use 0x1::Signer;
-
+        use 0x1::Timestamp;
         use 0x1::NFT;
         const ERR_IS_NOT_ADMIN :u64 = 10000;
+        const ERR_ADMIN_IS_NOT_INIT:u64 = 100011;
         const ERR_ADMIN_IS_INIT:u64 = 10012;
         const ERR_USER_IS_INIT:u64 = 10013;
         const ERR_DOMAIN_TOO_LANG:u64 = 10100;
         const ERR_DOMAIN_HAVE_DOT:u64 = 10101;
         const ERR_DOMAIN_IS_REGISTERED :u64 = 10102;
+
         struct Subdomain has key,copy,drop,store{ 
             Name                :   vector<u8>,
             STC_address         :   address     ,
@@ -104,6 +106,14 @@ address 0x413c244e089787d792f76cf8a756c13c {
 
         public fun get_STCNS_Meta_Domain_name(meta:&STCNS_Meta):&vector<u8>{
             &meta.Domain_name
+        }
+
+        public fun get_STCNS_List_List(stcns_list:&STCNS_List):&vector<NFT::NFT<STCNS_Meta,STCNS_Body>>{
+            &stcns_list.List
+        }
+
+        public fun get_mut_STCNS_List_List(stcns_list:&mut STCNS_List):&mut vector<NFT::NFT<STCNS_Meta,STCNS_Body>>{
+            &mut stcns_list.List
         }
 
         public fun Find_domain_owner(domains:&vector<STCNS_Admin_Domain>,domain:&vector<u8>):&address{
@@ -218,6 +228,59 @@ address 0x413c244e089787d792f76cf8a756c13c {
             move_to<STCNS_List>(account, list);
         }
 
+        public fun register_domain(account :&signer,domain:&vector<u8>,year:u64) acquires STCNS_Admin ,STCNS_List,ShardCap{
+            assert(Is_Admin_Init(), ERR_ADMIN_IS_NOT_INIT);
+            Is_Good_Domain(domain);
+            if(!Is_User_Init(&Signer::address_of(account))){
+                User_init(account);
+            };
+            register(account,domain,year);
+        }
+
+        
+        fun register(account :&signer,domain:&vector<u8>,year:u64) acquires STCNS_Admin ,STCNS_List,ShardCap{
+            let stcns_admin = borrow_global_mut<STCNS_Admin>(ADMAIN_ADDRESS);
+            let domains = get_mut_STCNS_Admin_Domains(stcns_admin);
+            Vector::push_back<STCNS_Admin_Domain>(domains, STCNS_Admin_Domain{
+                                                    Name                : *domain,
+                                                    Owner               : Signer::address_of(account)
+                                                });
+        
+            let nft = mint(account,domain,year);
+            let stcns_list = borrow_global_mut<STCNS_List>(Signer::address_of(account));
+            let list = get_mut_STCNS_List_List(stcns_list);
+            Vector::push_back<NFT::NFT<STCNS_Meta,STCNS_Body>>(list, nft);
+        }
+
+        fun mint(account :&signer,domain:&vector<u8>,year:u64):NFT::NFT<STCNS_Meta,STCNS_Body> acquires ShardCap{
+            let meta = STCNS_Meta {
+
+                        Domain_name         :   *domain,
+                        Controller          :   Signer::address_of(account)     ,
+                        Create_time         :   Timestamp::now_seconds(),
+                        Expiration_time     :   Timestamp::now_seconds() + 31536000 * year
+
+                    };
+            let body = STCNS_Body{
+                    Main        :  Domain{
+                                    STC_address         :    Signer::address_of(account) ,
+                                    ETH_address         :    Vector::empty<u8>(),
+                                    BTC_address         :   Vector::empty<u8>()  ,
+                                    LTC_address         :   Vector::empty<u8>()  ,
+
+                                    Email               :  Vector::empty<u8>() ,
+                                    Website             :   Vector::empty<u8>()  ,
+                                    com_twitter         :  Vector::empty<u8>()  ,
+                                    com_discord         :  Vector::empty<u8>()  ,
+                                    com_github          :  Vector::empty<u8>()  , 
+                                },
+                    Sub         :  Vector::empty<Subdomain>()
+                    };
+
+            let cap = borrow_global_mut<ShardCap>(ADMAIN_ADDRESS);
+            let nft = NFT::mint_with_cap_v2<STCNS_Meta,STCNS_Body>(Signer::address_of(account),&mut cap.mint_cap,NFT::new_meta(x"5354434e53",x"5354434e53"),meta,body);
+            return nft
+        }
 
     }
     
@@ -231,16 +294,11 @@ address 0x413c244e089787d792f76cf8a756c13c {
         public (script) fun user_init(account:signer){
             STCNS::User_init(&account);
         }
-        /*
-        public (script) fun register_domain(account:signer,domain:vector<u8>,year:u64) acquires Owner_Domains {//, ShardCap ,STCns_List{
-                assert(check_admin_is_init(), ERR_ADMIN_NOT_INIT);
-                check_register_domain(&domain);
-                let ;
-                Is_Doamin_registered();
-                assert(!check_domain_is_registered(&domain), ERR_DOMAIN_IS_REGISTERED);
-                // Register(&_account,&_domain,_year);
-        }
         
+        public (script) fun register_domain(account:signer,domain:vector<u8>,year:u64)  {
+               STCNS::register_domain(&account,&domain,year);
+        }
+        /*
         public (script) fun change_domain_owner(account:signer, domain:vector<u8>,owner:address) acquires Owner_Domains, STCns_List{
             assert(check_domain_at_address(&domain,&Signer::address_of(&account)), ERR_ADDRESS_IS_NOT_HAVE_DOMAIN);
             let owner_domains = borrow_global_mut<Owner_Domains>(Signer::address_of(&account));
