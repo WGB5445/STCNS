@@ -14,6 +14,7 @@ address 0x413c244e089787d792f76cf8a756c13c {
         const ERR_DOMAIN_IS_REGISTERED :u64 = 10102;
         const ERR_DOMAIN_IS_EXP:u64 = 10103;
 
+
         struct Subdomain has key,copy,drop,store{ 
             Name                :   vector<u8>,
             STC_address         :   address     ,
@@ -115,6 +116,7 @@ address 0x413c244e089787d792f76cf8a756c13c {
                 if(Utils_vector_cmp(name,domain)){
                     return Option::some<u64>(i)
                 };
+                i = i + 1;
             };
             Option::none<u64>()
         }
@@ -288,9 +290,9 @@ address 0x413c244e089787d792f76cf8a756c13c {
             let meta = NFT::get_type_meta(nft);
             let expiration_time = get_STCNS_Meta_Expiration_time(meta);
             if(Timestamp::now_seconds() > *expiration_time){
-               return  false
+               return  true
             };
-            true
+            false
         }
 
         public fun Admin_init(account :&signer){
@@ -325,6 +327,9 @@ address 0x413c244e089787d792f76cf8a756c13c {
             if(!Is_User_Init(&Signer::address_of(account))){
                 User_init(account);
             };
+            let stcns_admin = borrow_global<STCNS_Admin>(ADMAIN_ADDRESS);
+            let op_stcns_admin_index = get_STCNS_Admin_index(stcns_admin,domain);
+            assert(Option::is_none<u64>(&op_stcns_admin_index),ERR_DOMAIN_IS_REGISTERED);
             register(account,domain,year);
         }
 
@@ -395,7 +400,7 @@ address 0x413c244e089787d792f76cf8a756c13c {
                 }
 
             };
-            abort(ERR_DOMAIN_IS_EXP)
+            abort(1001)
         }
         public fun Resolution_stcaddress(domain:&vector<u8>):address acquires STCNS_Admin,STCNS_List{
             let stcns_admin = borrow_global<STCNS_Admin>(ADMAIN_ADDRESS);
@@ -420,7 +425,7 @@ address 0x413c244e089787d792f76cf8a756c13c {
                 }
 
             };
-            abort(ERR_DOMAIN_IS_EXP)
+            abort(ERR_DOMAIN_HAVE_DOT)
             
         }
         
@@ -430,8 +435,8 @@ address 0x413c244e089787d792f76cf8a756c13c {
             *stc_address = addr;
         }
         public fun change_Resolver_stcaddress(account:&signer,domain:&vector<u8>,addr:address)acquires STCNS_List ,ShardCap{
-            let addr = Signer::address_of(account);
-            let stcns_list = borrow_global_mut<STCNS_List>(addr);
+            let add = Signer::address_of(account);
+            let stcns_list = borrow_global_mut<STCNS_List>(add);
             let list = get_mut_STCNS_List_List(stcns_list);
             let nft = Find_mut_List_nft(list,domain);
             let cap = borrow_global_mut<ShardCap>(ADMAIN_ADDRESS);
@@ -439,7 +444,7 @@ address 0x413c244e089787d792f76cf8a756c13c {
             change_Resolver_main_stcaddress(body,addr);
         }
         public fun send(account:&signer, domain:&vector<u8>,owner:address)acquires STCNS_List,STCNS_Admin{
-            assert(!Is_User_Init(&owner),ERR_USER_IS_INIT);
+            assert(Is_User_Init(&owner),ERR_USER_IS_INIT);
             let addr = Signer::address_of(account);
             let stcns_list = borrow_global_mut<STCNS_List>(addr);
             let op_stcns_list_index = get_STCNS_List_index(stcns_list,domain);
