@@ -547,7 +547,7 @@ address 0xb87b4d228705e6e481dd21538a819371 {
 
             if(length <= *range1){
                 return ( n as u128) * (u_stc as u128) * (*price1 as u128)
-            }else if(length > *range2 && length <= *range3){
+            }else if(length < *range2 && length >= *range3){
                 return ( n as u128) * (u_stc as u128) * (*price2 as u128)
             }else {
                 return( n as u128) * (u_stc as u128) * (*price3 as u128)
