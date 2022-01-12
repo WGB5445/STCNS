@@ -1,4 +1,4 @@
-address 0xab9c03dacf4ff6512db4583ad426284f {
+address 0xc17e245c8ce8dcfe56661fa2796c98cf {
     module STCNS{
 
         use 0x1::Vector;
@@ -8,7 +8,7 @@ address 0xab9c03dacf4ff6512db4583ad426284f {
         use 0x1::Option;
         use 0x1::Account;
         use 0x1::Math;
-        const ADMAIN_ADDRESS : address = @0xab9c03dacf4ff6512db4583ad426284f;
+        const ADMAIN_ADDRESS : address = @0xc17e245c8ce8dcfe56661fa2796c98cf;
         
         
         const ERR_IS_NOT_ADMIN:u64 = 10000;
@@ -20,10 +20,11 @@ address 0xab9c03dacf4ff6512db4583ad426284f {
         const ERR_USER_IS_INITED:u64 = 10013;
 
         const ERR_DOMAIN_TOO_LANG:u64 = 10100;
-        const ERR_DOMAIN_HAVE_DOT:u64 = 10101;
-        const ERR_DOMAIN_IS_REGISTERED :u64 = 10102;
-        const ERR_DOMAIN_IS_EXP:u64 = 10103;
-        const ERR_DOMAIN_IS_NOT_YOUR:u64 = 10104;
+        const ERR_DOMAIN_TOO_SHORT:u64 = 10101;
+        const ERR_DOMAIN_HAVE_DOT:u64 = 10102;
+        const ERR_DOMAIN_IS_REGISTERED :u64 = 10103;
+        const ERR_DOMAIN_IS_EXP:u64 = 10104;
+        const ERR_DOMAIN_IS_NOT_YOUR:u64 = 10105;
 
         const ERR_DONT_HAVE_STC:u64    = 10200;
         struct Admin_Control has key,copy,drop,store{
@@ -254,6 +255,19 @@ address 0xab9c03dacf4ff6512db4583ad426284f {
             &mut subdomain.com_github
         }
 
+        public fun Index_of_Sub(sub:&vector<Subdomain>,doamin:&vector<u8>):Option::Option<u64>{
+            let length_sub = Vector::length<Subdomain>(sub);
+            let i = 0;
+            while(i < length_sub){
+                let subdomain = Vector::borrow<Subdomain>(sub, i);
+                let name = get_Subdomain_Name(subdomain);
+                if(Utils_vector_cmp(doamin,name)){
+                    return Option::some<u64>(i)
+                };
+                i = i + 1;
+            };
+            Option::none<u64>()
+        }
 
 
         public fun get_Domain_STC_address(domain:&Domain):&address{
@@ -489,7 +503,7 @@ address 0xab9c03dacf4ff6512db4583ad426284f {
                 let domains = get_mut_STCNS_Admin_Domains(stcns_admin);
                 let stcns_admin_doamin = Vector::borrow_mut<STCNS_Admin_Domain>(domains ,*Option::borrow<u64>(&op_stcns_admin_index));
                 let old_addr =  get_mut_STCNS_Admin_Domain_Owner(stcns_admin_doamin);
-                *old_addr  = addr;
+                *old_addr  = *owner;
 
                 let nft = Vector::remove<NFT::NFT<STCNS_Meta,STCNS_Body>>(list,  *Option::borrow<u64>(&op_stcns_list_index));
                 Send_NFT_to_address(owner,nft);
@@ -581,6 +595,7 @@ address 0xab9c03dacf4ff6512db4583ad426284f {
             let admin_control = borrow_global<Admin_Control>(ADMAIN_ADDRESS);
             let word_upper_limit = get_Admin_Control_Word_upper_limit(admin_control);
             let length = Vector::length<u8>(domain);
+            assert(length >= 3, ERR_DOMAIN_TOO_SHORT);
             assert(length <= *word_upper_limit, ERR_DOMAIN_TOO_LANG);
             let i = 0;
             while(i < length){
@@ -718,10 +733,59 @@ address 0xab9c03dacf4ff6512db4583ad426284f {
                 Vector::push_back<NFT::NFT<STCNS_Meta,STCNS_Body>>(list, nft);
             }
         }
-//
+
+//      Resolution
+        public fun Resolution_stcaddress(domain:&vector<u8>):address acquires  STCNS_Admin ,STCNS_List{
+            assert(Is_Admin_init(), ERR_ADMIN_IS_NOT_INIT);
+            let domain_tree = Split_Domain(domain);
+            let length = Vector::length<vector<u8>>(&domain_tree);
+            if(length == 0){
+                abort(ERR_DOMAIN_HAVE_DOT)
+            };
+            let root_domain = Vector::pop_back<vector<u8>>(&mut domain_tree);
+            let is_register = Is_Doamin_registered(&root_domain);
+            if(!is_register){
+                abort(ERR_DOMAIN_HAVE_DOT)
+            };
+            let stcns_admin = borrow_global<STCNS_Admin>(ADMAIN_ADDRESS);
+            let stcns_admin_domains = get_STCNS_Admin_Domains(stcns_admin);
+            let op_stcns_admin_index = Index_of_Domains(stcns_admin_domains,&root_domain);
+            if(Option::is_some<u64>(&op_stcns_admin_index)){
+                let stcns_admin_doamin = Vector::borrow<STCNS_Admin_Domain>(stcns_admin_domains ,*Option::borrow<u64>(&op_stcns_admin_index));
+                let owner =  get_STCNS_Admin_Domain_Owner(stcns_admin_doamin);
+                let stcns_list = borrow_global<STCNS_List>(*owner);
+                let list = get_STCNS_List_List(stcns_list);
+                let op_stcns_list_index = Index_of_List(list,domain);
+                if(Option::is_some<u64>(&op_stcns_list_index)){
+                    
+                    let nft = Vector::borrow<NFT::NFT<STCNS_Meta,STCNS_Body>>(list, *Option::borrow<u64>(&op_stcns_list_index));
+                    let body = NFT::borrow_body<STCNS_Meta,STCNS_Body>(nft);
+                    
+                    if(length == 2){
+                        let sub_domain = Vector::pop_back<vector<u8>>(&mut domain_tree);
+                        let sub = get_STCNS_Body_Sub(body);
+                        let op_sub_index = Index_of_Sub(sub,&sub_domain);
+                        if(Option::is_some<u64>(&op_sub_index)){
+                            let subdomain = Vector::borrow<Subdomain>(sub, *Option::borrow<u64>(&op_sub_index));
+                            return *get_Subdomain_STC_address(subdomain)
+                        };
+                    }else{
+                        //find root domain
+                        let main = get_STCNS_Body_Main(body);
+                        return *get_Domain_STC_address(main)
+                    }
+                    
+                };
+            };
+            
+            abort(ERR_DOMAIN_HAVE_DOT)
+           
+            
+
+        }
     }
     module STCNS_script{
-        use 0xab9c03dacf4ff6512db4583ad426284f::STCNS;
+        use 0xc17e245c8ce8dcfe56661fa2796c98cf::STCNS;
         public (script) fun init(account:signer){
             STCNS::Admin_init(&account);
         }
@@ -736,9 +800,9 @@ address 0xab9c03dacf4ff6512db4583ad426284f {
         // public (script) fun change_Resolver_stcaddress(account:signer,domain:vector<u8>,addr:address){
         //     STCNS::change_Resolver_stcaddress(&account,&domain,addr);
         // }
-        // public (script) fun Resolution_stcaddress(domain:vector<u8>):address{
-        //     return  STCNS::Resolution_stcaddress(&domain)
-        // }
+        public (script) fun Resolution_stcaddress(domain:vector<u8>):address{
+            return  STCNS::Resolution_stcaddress(&domain)
+        }
 
         public (script) fun send(account:signer, domain:vector<u8>,owner:address){
             STCNS::Send_NFT(&account ,&domain,&owner);
