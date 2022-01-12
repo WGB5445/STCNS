@@ -783,6 +783,55 @@ address 0xc17e245c8ce8dcfe56661fa2796c98cf {
             
 
         }
+        public fun change_Resolver_stcaddress(account:&signer,domain:&vector<u8>,addr:&address) acquires  STCNS_Admin ,STCNS_List,ShardCap{
+            assert(Is_Admin_init(), ERR_ADMIN_IS_NOT_INIT);
+            let domain_tree = Split_Domain(domain);
+            let length = Vector::length<vector<u8>>(&domain_tree);
+            if(length == 0){
+                abort(ERR_DOMAIN_HAVE_DOT)
+            };
+            let root_domain = Vector::pop_back<vector<u8>>(&mut domain_tree);
+            let is_register = Is_Doamin_registered(&root_domain);
+            if(!is_register){
+                abort(ERR_DOMAIN_HAVE_DOT)
+            };
+            
+            let owner = Signer::address_of(account);
+            let stcns_list = borrow_global_mut<STCNS_List>(owner);
+            let list = get_mut_STCNS_List_List(stcns_list);
+            let op_stcns_list_index = Index_of_List(list,domain);
+            if(Option::is_some<u64>(&op_stcns_list_index)){
+                
+                let stcns_admin = borrow_global_mut<STCNS_Admin>(ADMAIN_ADDRESS);
+                let stcns_admin_domains = get_mut_STCNS_Admin_Domains(stcns_admin);
+                let op_stcns_admin_index = Index_of_Domains(stcns_admin_domains,&root_domain);
+                if(Option::is_some<u64>(&op_stcns_admin_index)){
+                    
+                    let nft = Vector::borrow_mut<NFT::NFT<STCNS_Meta,STCNS_Body>>(list, *Option::borrow<u64>(&op_stcns_list_index));
+                    let cap = borrow_global_mut<ShardCap>(ADMAIN_ADDRESS);
+                    let body = NFT::borrow_body_mut_with_cap<STCNS_Meta,STCNS_Body>(get_mut_ShardCap_updata_cap(cap),nft);
+                    
+                    if(length == 2){
+                        let sub_domain = Vector::pop_back<vector<u8>>(&mut domain_tree);
+                        let sub = get_mut_STCNS_Body_Sub(body);
+                        let op_sub_index = Index_of_Sub(sub,&sub_domain);
+                        if(Option::is_some<u64>(&op_sub_index)){
+                            let subdomain = Vector::borrow_mut<Subdomain>(sub, *Option::borrow<u64>(&op_sub_index));
+                            *get_mut_Subdomain_STC_address(subdomain) = *addr;
+                            return 
+                        };
+                    }else{
+                        //find root domain
+                        let main = get_mut_STCNS_Body_Main(body);
+                        *get_mut_Domain_STC_address(main)  = *addr;
+                        return
+                    }
+                    
+                };
+            };
+            
+            abort(ERR_DOMAIN_IS_NOT_YOUR)
+        }
     }
     module STCNS_script{
         use 0xc17e245c8ce8dcfe56661fa2796c98cf::STCNS;
@@ -797,9 +846,9 @@ address 0xc17e245c8ce8dcfe56661fa2796c98cf {
         public (script) fun register(account:signer,domain:vector<u8>,year:u64)  {
             STCNS::register(&account,&domain,year);
         }
-        // public (script) fun change_Resolver_stcaddress(account:signer,domain:vector<u8>,addr:address){
-        //     STCNS::change_Resolver_stcaddress(&account,&domain,addr);
-        // }
+        public (script) fun change_Resolver_stcaddress(account:signer,domain:vector<u8>,addr:address){
+            STCNS::change_Resolver_stcaddress(&account,&domain,&addr);
+        }
         public (script) fun Resolution_stcaddress(domain:vector<u8>):address{
             return  STCNS::Resolution_stcaddress(&domain)
         }
