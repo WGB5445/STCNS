@@ -6,6 +6,7 @@ address 0x413c244e089787d792f76cf8a756c13c {
         use 0x1::Timestamp;
         use 0x1::NFT;
         use 0x1::Option;
+        use 0x1::Account;
         const ADMAIN_ADDRESS : address = @0x413c244e089787d792f76cf8a756c13c;
         
         
@@ -23,6 +24,7 @@ address 0x413c244e089787d792f76cf8a756c13c {
         const ERR_DOMAIN_IS_EXP:u64 = 10103;
         const ERR_DOMAIN_IS_NOT_YOUR:u64 = 10104;
 
+        const ERR_DONT_HAVE_STC:u64    = 10200;
         struct Admin_Control has key,copy,drop,store{
             Can_Send        : bool,
             Can_Resolver    : bool,
@@ -421,7 +423,10 @@ address 0x413c244e089787d792f76cf8a756c13c {
         public fun get_mut_Admin_Control_Price_3(admin_control:&mut Admin_Control):&mut u64{
             &mut admin_control.Price_3
         }
-
+//   STCNS_admin
+        // public fun get_Domain_NFT(domain:&vector<u8>):&NFT::NFT<STCNS_Meta,STCNS_Body>{
+            
+        // }
 //   Expired
         public fun Is_Domain_NFT_Expired(nft:&NFT::NFT<STCNS_Meta,STCNS_Body>):bool{
             let meta = NFT::get_type_meta(nft);
@@ -437,7 +442,7 @@ address 0x413c244e089787d792f76cf8a756c13c {
             return Is_Domain_NFT_Expired(nft)
         }
 
-        public fun Is_Domain_Expired(stcns_list:&STCNS_List,domain:&vector<u8>):bool{
+        public fun Is_Domain_Expired_STCNS_List(stcns_list:&STCNS_List,domain:&vector<u8>):bool{
             let list = get_STCNS_List_List(stcns_list);
             let op_list_index = Index_of_List(list,domain);
             if(Option::is_some<u64>(&op_list_index)){
@@ -445,6 +450,18 @@ address 0x413c244e089787d792f76cf8a756c13c {
             };
             abort(CAN_NOT_FINDED)
 
+        }
+        public fun Is_Domain_Expired_STCNS_Admin(domain:&vector<u8>):bool acquires STCNS_Admin, STCNS_List{
+            let stcns_admin = borrow_global<STCNS_Admin>(ADMAIN_ADDRESS);
+            let domains =  get_STCNS_Admin_Domains(stcns_admin);
+            let op_index_domains =  Index_of_Domains(domains,domain);
+            if(Option::is_some<u64>(&op_index_domains)){
+                let stcns_admin_doamin = Vector::borrow<STCNS_Admin_Domain>(domains ,*Option::borrow<u64>(&op_index_domains));
+                let owner =  get_STCNS_Admin_Domain_Owner(stcns_admin_doamin);
+                let stcns_list = borrow_global<STCNS_List>(*owner);
+                return Is_Domain_Expired_STCNS_List(stcns_list,domain)
+            };
+            abort(ERR_DOMAIN_HAVE_DOT)
         }
 //     NFT send
         public fun Send_NFT_to_list (list:&mut vector<NFT::NFT<STCNS_Meta,STCNS_Body>>,nft:NFT::NFT<STCNS_Meta,STCNS_Body>){
@@ -511,6 +528,30 @@ address 0x413c244e089787d792f76cf8a756c13c {
 
             move_to(account, ShardCap {mint_cap:nft_mint_cap,burn_cap:nft_burn_cap,updata_cap:nft_updata_cap});
         }
+//      Much
+        public fun get_much_Doamin(domain:&vector<u8>):u128 acquires Admin_Control{
+            let admin_control = borrow_global<Admin_Control>(ADMAIN_ADDRESS);
+            let price1 = get_Admin_Control_Price_1(admin_control);
+            let price2 = get_Admin_Control_Price_2(admin_control);
+            let price3 = get_Admin_Control_Price_3(admin_control);
+
+            let range1 = get_Admin_Control_Pricerange_1(admin_control);
+            let range2 = get_Admin_Control_Pricerange_2(admin_control);
+            let range3 = get_Admin_Control_Pricerange_3(admin_control);
+
+            let length = Vector::length<u8>(domain);
+            
+            let n = 9;
+            let u_stc = 12;
+
+            if(length <= *range1){
+                return ( n as u128) * (u_stc as u128) * (*price1 as u128)
+            }else if(length > *range2 && length <= *range3){
+                return ( n as u128) * (u_stc as u128) * (*price2 as u128)
+            }else {
+                return( n as u128) * (u_stc as u128) * (*price3 as u128)
+            }
+        }
 //      domain
         public fun Is_Good_Domain(domain:&vector<u8>):bool  acquires Admin_Control{
             let admin_control = borrow_global<Admin_Control>(ADMAIN_ADDRESS);
@@ -565,5 +606,95 @@ address 0x413c244e089787d792f76cf8a756c13c {
             return domains
 
         }
+        public fun Is_Doamin_registered(domain:&vector<u8>):bool acquires  STCNS_Admin{
+            let stcns_admin = borrow_global<STCNS_Admin>(ADMAIN_ADDRESS);
+            let domains =  get_STCNS_Admin_Domains(stcns_admin);
+            let op_index_domains =  Index_of_Domains(domains,domain);
+            if(Option::is_some<u64>(&op_index_domains)){
+                return true
+            };
+            return false
+        }
+//      register
+        public fun register(account:&signer,domain:&vector<u8>,year:u64)acquires Admin_Control ,STCNS_Admin ,STCNS_List,ShardCap{
+            assert(Is_Admin_init(), ERR_ADMIN_IS_NOT_INIT);
+            Is_Good_Domain(domain);
+            let addr = Signer::address_of(account);
+            if(!Is_User_init(&addr)){
+                User_init(account);
+            };
+            let is_register = Is_Doamin_registered(domain);
+            
+            if(is_register){
+                let is_expired = Is_Domain_Expired_STCNS_Admin(domain);
+                assert(is_expired, ERR_DOMAIN_IS_REGISTERED);
+            };
+            let balance = Account::balance<0x1::STC::STC>(addr);
+            
+            let much = get_much_Doamin(domain);
+            assert(balance < (much * (year as u128) ), ERR_DONT_HAVE_STC);
+            // 
+
+            if(is_register){
+                let stcns_admin = borrow_global_mut<STCNS_Admin>(ADMAIN_ADDRESS);
+                let stcns_admin_domains = get_STCNS_Admin_Domains(stcns_admin);
+                let op_stcns_admin_index = Index_of_Domains(stcns_admin_domains,domain);
+                let domains = get_mut_STCNS_Admin_Domains(stcns_admin);
+                let stcns_admin_doamin = Vector::borrow_mut<STCNS_Admin_Domain>(domains ,*Option::borrow<u64>(&op_stcns_admin_index));
+                let owner =  get_STCNS_Admin_Domain_Owner(stcns_admin_doamin);
+                let stcns_list = borrow_global_mut<STCNS_List>(*owner);
+                let list = get_mut_STCNS_List_List(stcns_list);
+                let op_stcns_list_index = Index_of_List(list,domain);
+                if(Option::is_some<u64>(&op_stcns_list_index)){
+                    //
+                    let nft = Vector::remove<NFT::NFT<STCNS_Meta,STCNS_Body>>(list,  *Option::borrow<u64>(&op_stcns_list_index));
+                    let to_stcns_list = borrow_global_mut<STCNS_List>(addr);
+                    let to_list = get_mut_STCNS_List_List(to_stcns_list);
+                    Vector::push_back<NFT::NFT<STCNS_Meta,STCNS_Body>>(to_list, nft);
+                    
+                    let old_owner =  get_mut_STCNS_Admin_Domain_Owner(stcns_admin_doamin);
+                    *old_owner  = addr;
+                };
+            }
+            else{
+                //mint
+                let meta = STCNS_Meta {
+
+                        Domain_name         :   *domain,
+                        Controller          :   ADMAIN_ADDRESS  ,
+                        Create_time         :   Timestamp::now_seconds(),
+                        Expiration_time     :   Timestamp::now_seconds() + 31536000 * year
+
+                    };
+                let body = STCNS_Body{
+                            Main        :  Domain{  
+                                        STC_address         :    Signer::address_of(account) ,
+                                        ETH_address         :    Vector::empty<u8>(),
+                                        BTC_address         :   Vector::empty<u8>()  ,
+                                        LTC_address         :   Vector::empty<u8>()  ,
+
+                                        Email               :  Vector::empty<u8>() ,
+                                        Website             :   Vector::empty<u8>()  ,
+                                        com_twitter         :  Vector::empty<u8>()  ,
+                                        com_discord         :  Vector::empty<u8>()  ,
+                                        com_github          :  Vector::empty<u8>()  , 
+                                    },
+                            Sub   :  Vector::empty<Subdomain>()
+                        };
+
+                let cap = borrow_global_mut<ShardCap>(ADMAIN_ADDRESS);
+                let nft = NFT::mint_with_cap_v2<STCNS_Meta,STCNS_Body>(Signer::address_of(account),&mut cap.mint_cap,NFT::new_meta(x"5354434e53",x"5354434e53"),meta,body);
+                let stcns_admin = borrow_global_mut<STCNS_Admin>(ADMAIN_ADDRESS);
+                let domains = get_mut_STCNS_Admin_Domains(stcns_admin);
+                Vector::push_back<STCNS_Admin_Domain>(domains, STCNS_Admin_Domain{
+                                                        Name                : *domain,
+                                                        Owner               : addr
+                                                    });
+                let stcns_list = borrow_global_mut<STCNS_List>(addr);
+                let list = get_mut_STCNS_List_List(stcns_list);
+                Vector::push_back<NFT::NFT<STCNS_Meta,STCNS_Body>>(list, nft);
+            }
+        }
+//
     }
 }
