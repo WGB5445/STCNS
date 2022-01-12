@@ -1,4 +1,4 @@
-address 0xb87b4d228705e6e481dd21538a819371 {
+address 0xab9c03dacf4ff6512db4583ad426284f {
     module STCNS{
 
         use 0x1::Vector;
@@ -8,7 +8,7 @@ address 0xb87b4d228705e6e481dd21538a819371 {
         use 0x1::Option;
         use 0x1::Account;
         use 0x1::Math;
-        const ADMAIN_ADDRESS : address = @0xb87b4d228705e6e481dd21538a819371;
+        const ADMAIN_ADDRESS : address = @0xab9c03dacf4ff6512db4583ad426284f;
         
         
         const ERR_IS_NOT_ADMIN:u64 = 10000;
@@ -470,10 +470,33 @@ address 0xb87b4d228705e6e481dd21538a819371 {
         }
 
         public fun Send_NFT_to_address (addr:&address,nft:NFT::NFT<STCNS_Meta,STCNS_Body>) acquires  STCNS_List{
-            assert(!Is_User_init(addr),ERR_USER_IS_INITED);
+            assert(Is_User_init(addr),ERR_USER_IS_INITED);
             let stcns_list = borrow_global_mut<STCNS_List>(*addr);
             let list = get_mut_STCNS_List_List(stcns_list);
             Send_NFT_to_list(list,nft);
+        }
+
+        public fun Send_NFT(account:&signer,domain:&vector<u8>,owner:&address)acquires  STCNS_Admin ,STCNS_List{
+            assert(Is_User_init(owner), ERR_USER_IS_NOT_INIT);
+            let addr = Signer::address_of(account);
+            let stcns_list = borrow_global_mut<STCNS_List>(addr);
+            let list = get_mut_STCNS_List_List(stcns_list);
+            let op_stcns_list_index = Index_of_List(list,domain);
+            if(Option::is_some<u64>(&op_stcns_list_index)){
+                let stcns_admin = borrow_global_mut<STCNS_Admin>(ADMAIN_ADDRESS);
+                let stcns_admin_domains = get_STCNS_Admin_Domains(stcns_admin);
+                let op_stcns_admin_index = Index_of_Domains(stcns_admin_domains,domain);
+                let domains = get_mut_STCNS_Admin_Domains(stcns_admin);
+                let stcns_admin_doamin = Vector::borrow_mut<STCNS_Admin_Domain>(domains ,*Option::borrow<u64>(&op_stcns_admin_index));
+                let old_addr =  get_mut_STCNS_Admin_Domain_Owner(stcns_admin_doamin);
+                *old_addr  = addr;
+
+                let nft = Vector::remove<NFT::NFT<STCNS_Meta,STCNS_Body>>(list,  *Option::borrow<u64>(&op_stcns_list_index));
+                Send_NFT_to_address(owner,nft);
+                return                 
+            };
+            
+            abort(ERR_DOMAIN_IS_NOT_YOUR)
         }
 
 //      init 
@@ -538,7 +561,7 @@ address 0xb87b4d228705e6e481dd21538a819371 {
 
             let range1 = get_Admin_Control_Pricerange_1(admin_control);
             let range2 = get_Admin_Control_Pricerange_2(admin_control);
-            let range3 = get_Admin_Control_Pricerange_3(admin_control);
+            let _range3 = get_Admin_Control_Pricerange_3(admin_control);
 
             let length = Vector::length<u8>(domain);
             
@@ -547,7 +570,7 @@ address 0xb87b4d228705e6e481dd21538a819371 {
 
             if(length <= *range1){
                 return ( n as u128) * (u_stc as u128) * (*price1 as u128)
-            }else if(length < *range2 && length >= *range3){
+            }else if(length <= *range2 && length > *range1){
                 return ( n as u128) * (u_stc as u128) * (*price2 as u128)
             }else {
                 return( n as u128) * (u_stc as u128) * (*price3 as u128)
@@ -698,7 +721,7 @@ address 0xb87b4d228705e6e481dd21538a819371 {
 //
     }
     module STCNS_script{
-        use 0xb87b4d228705e6e481dd21538a819371::STCNS;
+        use 0xab9c03dacf4ff6512db4583ad426284f::STCNS;
         public (script) fun init(account:signer){
             STCNS::Admin_init(&account);
         }
@@ -717,8 +740,8 @@ address 0xb87b4d228705e6e481dd21538a819371 {
         //     return  STCNS::Resolution_stcaddress(&domain)
         // }
 
-        // public (script) fun send(account:signer, domain:vector<u8>,owner:address){
-        //     STCNS::send(&account ,&domain,owner);
-        // }
+        public (script) fun send(account:signer, domain:vector<u8>,owner:address){
+            STCNS::Send_NFT(&account ,&domain,&owner);
+        }
     }
 }
