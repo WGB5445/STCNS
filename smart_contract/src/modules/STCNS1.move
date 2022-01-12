@@ -1,5 +1,5 @@
 address 0x413c244e089787d792f76cf8a756c13c {
-    module STCNS1{
+    module STCNS{
 
         use 0x1::Vector;
         use 0x1::Signer;
@@ -631,10 +631,10 @@ address 0x413c244e089787d792f76cf8a756c13c {
             };
             let balance = Account::balance<0x1::STC::STC>(addr);
             
-            let much = get_much_Doamin(domain);
-            assert(balance < (much * (year as u128) ), ERR_DONT_HAVE_STC);
+            let much = get_much_Doamin(domain)* (year as u128) ;
+            assert(balance < much , ERR_DONT_HAVE_STC);
             // 
-
+            Account::pay_from<0x1::STC::STC>(account,ADMAIN_ADDRESS,much);
             if(is_register){
                 let stcns_admin = borrow_global_mut<STCNS_Admin>(ADMAIN_ADDRESS);
                 let stcns_admin_domains = get_STCNS_Admin_Domains(stcns_admin);
@@ -648,9 +648,7 @@ address 0x413c244e089787d792f76cf8a756c13c {
                 if(Option::is_some<u64>(&op_stcns_list_index)){
                     //
                     let nft = Vector::remove<NFT::NFT<STCNS_Meta,STCNS_Body>>(list,  *Option::borrow<u64>(&op_stcns_list_index));
-                    let to_stcns_list = borrow_global_mut<STCNS_List>(addr);
-                    let to_list = get_mut_STCNS_List_List(to_stcns_list);
-                    Vector::push_back<NFT::NFT<STCNS_Meta,STCNS_Body>>(to_list, nft);
+                    Send_NFT_to_address(&addr,nft);
                     
                     let old_owner =  get_mut_STCNS_Admin_Domain_Owner(stcns_admin_doamin);
                     *old_owner  = addr;
@@ -696,5 +694,29 @@ address 0x413c244e089787d792f76cf8a756c13c {
             }
         }
 //
+    }
+    module STCNS1_script{
+        use 0x413c244e089787d792f76cf8a756c13c::STCNS;
+        public (script) fun init(account:signer){
+            STCNS::Admin_init(&account);
+        }
+
+        public (script) fun user_init(account:signer){
+            STCNS::User_init(&account);
+        }
+        
+        public (script) fun register(account:signer,domain:vector<u8>,year:u64)  {
+            STCNS::register(&account,&domain,year);
+        }
+        // public (script) fun change_Resolver_stcaddress(account:signer,domain:vector<u8>,addr:address){
+        //     STCNS::change_Resolver_stcaddress(&account,&domain,addr);
+        // }
+        // public (script) fun Resolution_stcaddress(domain:vector<u8>):address{
+        //     return  STCNS::Resolution_stcaddress(&domain)
+        // }
+
+        // public (script) fun send(account:signer, domain:vector<u8>,owner:address){
+        //     STCNS::send(&account ,&domain,owner);
+        // }
     }
 }
