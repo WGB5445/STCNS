@@ -1,4 +1,4 @@
-address 0x413c244e089787d792f76cf8a756c13c {
+address 0xb87b4d228705e6e481dd21538a819371 {
     module STCNS{
 
         use 0x1::Vector;
@@ -7,7 +7,8 @@ address 0x413c244e089787d792f76cf8a756c13c {
         use 0x1::NFT;
         use 0x1::Option;
         use 0x1::Account;
-        const ADMAIN_ADDRESS : address = @0x413c244e089787d792f76cf8a756c13c;
+        use 0x1::Math;
+        const ADMAIN_ADDRESS : address = @0xb87b4d228705e6e481dd21538a819371;
         
         
         const ERR_IS_NOT_ADMIN:u64 = 10000;
@@ -541,7 +542,7 @@ address 0x413c244e089787d792f76cf8a756c13c {
 
             let length = Vector::length<u8>(domain);
             
-            let n = 9;
+            let n = Math::pow(10,9);
             let u_stc = 12;
 
             if(length <= *range1){
@@ -632,9 +633,10 @@ address 0x413c244e089787d792f76cf8a756c13c {
             let balance = Account::balance<0x1::STC::STC>(addr);
             
             let much = get_much_Doamin(domain)* (year as u128) ;
-            assert(balance < much , ERR_DONT_HAVE_STC);
+            assert(balance > much , ERR_DONT_HAVE_STC);
             // 
             Account::pay_from<0x1::STC::STC>(account,ADMAIN_ADDRESS,much);
+
             if(is_register){
                 let stcns_admin = borrow_global_mut<STCNS_Admin>(ADMAIN_ADDRESS);
                 let stcns_admin_domains = get_STCNS_Admin_Domains(stcns_admin);
@@ -695,8 +697,8 @@ address 0x413c244e089787d792f76cf8a756c13c {
         }
 //
     }
-    module STCNS1_script{
-        use 0x413c244e089787d792f76cf8a756c13c::STCNS;
+    module STCNS_script{
+        use 0xb87b4d228705e6e481dd21538a819371::STCNS;
         public (script) fun init(account:signer){
             STCNS::Admin_init(&account);
         }
