@@ -6,7 +6,23 @@ address 0x413c244e089787d792f76cf8a756c13c {
         use 0x1::Timestamp;
         use 0x1::NFT;
         use 0x1::Option;
-         const ADMAIN_ADDRESS : address = @0x413c244e089787d792f76cf8a756c13c;
+        const ADMAIN_ADDRESS : address = @0x413c244e089787d792f76cf8a756c13c;
+        
+        
+        const ERR_IS_NOT_ADMIN:u64 = 10000;
+        const CAN_NOT_FINDED:u64 = 10001;
+         // init 
+        const ERR_ADMIN_IS_NOT_INIT:u64 = 100010;
+        const ERR_USER_IS_NOT_INIT:u64 = 100011;
+        const ERR_ADMIN_IS_INITED:u64 = 10012;
+        const ERR_USER_IS_INITED:u64 = 10013;
+
+        const ERR_DOMAIN_TOO_LANG:u64 = 10100;
+        const ERR_DOMAIN_HAVE_DOT:u64 = 10101;
+        const ERR_DOMAIN_IS_REGISTERED :u64 = 10102;
+        const ERR_DOMAIN_IS_EXP:u64 = 10103;
+        const ERR_DOMAIN_IS_NOT_YOUR:u64 = 10104;
+
         struct Admin_Control has key,copy,drop,store{
             Can_Send        : bool,
             Can_Resolver    : bool,
@@ -417,9 +433,137 @@ address 0x413c244e089787d792f76cf8a756c13c {
         }
 
         public fun Is_Domain_Index_Expired(list:&vector<NFT::NFT<STCNS_Meta,STCNS_Body>>,i:u64):bool{
-
+            let nft = Vector::borrow<NFT::NFT<STCNS_Meta,STCNS_Body>>(list, i);
+            return Is_Domain_NFT_Expired(nft)
         }
 
+        public fun Is_Domain_Expired(stcns_list:&STCNS_List,domain:&vector<u8>):bool{
+            let list = get_STCNS_List_List(stcns_list);
+            let op_list_index = Index_of_List(list,domain);
+            if(Option::is_some<u64>(&op_list_index)){
+                return Is_Domain_Index_Expired(list,*Option::borrow<u64>(&op_list_index))
+            };
+            abort(CAN_NOT_FINDED)
 
+        }
+//     NFT send
+        public fun Send_NFT_to_list (list:&mut vector<NFT::NFT<STCNS_Meta,STCNS_Body>>,nft:NFT::NFT<STCNS_Meta,STCNS_Body>){
+            Vector::push_back<NFT::NFT<STCNS_Meta,STCNS_Body>>(list,nft);
+        }
+
+        public fun Send_NFT_to_address (addr:&address,nft:NFT::NFT<STCNS_Meta,STCNS_Body>) acquires  STCNS_List{
+            assert(!Is_User_init(addr),ERR_USER_IS_INITED);
+            let stcns_list = borrow_global_mut<STCNS_List>(*addr);
+            let list = get_mut_STCNS_List_List(stcns_list);
+            Send_NFT_to_list(list,nft);
+        }
+
+//      init 
+        public fun Is_User_init(addr:&address):bool{
+            return exists<STCNS_List>(*addr)
+        }
+        public fun User_init(account :&signer){
+            assert(!Is_User_init(&Signer::address_of(account)),ERR_USER_IS_INITED);
+            let list = STCNS_List{
+                List: Vector::empty<NFT::NFT<STCNS_Meta,STCNS_Body>>()
+            };
+            move_to<STCNS_List>(account, list);
+        }
+
+        public fun Is_Admin_init():bool{
+            return exists<STCNS_Admin>(ADMAIN_ADDRESS)
+        }
+        public fun Admin_init(account :&signer){
+            assert(!Is_Admin_init(),ERR_ADMIN_IS_INITED);
+            let account_address =  Signer::address_of(account);
+            assert(ADMAIN_ADDRESS == account_address,  ERR_IS_NOT_ADMIN);
+            if(! Is_Admin_init()){
+                let stcns_admin = STCNS_Admin{
+                    Domains         : Vector::empty<STCNS_Admin_Domain>()
+                };
+                move_to<STCNS_Admin>(account, stcns_admin);
+            };
+            if(!exists<Admin_Control>(ADMAIN_ADDRESS)){
+                let admin_control = Admin_Control{
+                                Can_Send        : true,
+                                Can_Resolver    : true,
+                                Can_Change_Resolver: true,
+                                Can_Register    : true,
+
+                                Pricerange_1      :4,
+                                Pricerange_2      :9,
+                                Pricerange_3      :100,
+                                
+                                Word_upper_limit  : 100,
+
+                                Price_1         : 50,
+                                Price_2         : 20,
+                                Price_3         : 5
+                };
+                move_to<Admin_Control>(account, admin_control);
+            };
+
+            NFT::register_v2<STCNS_Meta>(account,NFT::new_meta(x"68656c6c6f20776f726c64",x"68656c6c6f20776f726c64"));
+
+            let nft_mint_cap = NFT::remove_mint_capability<STCNS_Meta>(account);
+            let nft_burn_cap = NFT::remove_burn_capability<STCNS_Meta>(account);
+            let nft_updata_cap = NFT::remove_update_capability<STCNS_Meta>(account);
+
+            move_to(account, ShardCap {mint_cap:nft_mint_cap,burn_cap:nft_burn_cap,updata_cap:nft_updata_cap});
+        }
+//      domain
+        public fun Is_Good_Domain(domain:&vector<u8>):bool  acquires Admin_Control{
+            let admin_control = borrow_global<Admin_Control>(ADMAIN_ADDRESS);
+            let word_upper_limit = get_Admin_Control_Word_upper_limit(admin_control);
+            let length = Vector::length<u8>(domain);
+            assert(length <= *word_upper_limit, ERR_DOMAIN_TOO_LANG);
+            let i = 0;
+            while(i < length){
+                assert(*Vector::borrow<u8>(domain, i) != 46u8, ERR_DOMAIN_HAVE_DOT);
+                i = i + 1;
+            };
+            true
+        }
+        public fun Is_Root_Domain(domain:&vector<u8>):bool{
+            let length = Vector::length<u8>(domain);
+            let i = 0;
+            while(i < length){
+                if(*Vector::borrow<u8>(domain, i) == 46u8){
+                    return false
+                };
+                i = i + 1;
+            };
+            true
+        }
+        public fun Split_Domain(domain:&vector<u8>):vector<vector<u8>>{
+            if(Is_Root_Domain(domain)){
+               return Vector::singleton<vector<u8>>(*domain)
+            };
+            let length = Vector::length<u8>(domain);
+            let domains = Vector::empty<vector<u8>>();
+            let i = 0;
+            let l = 0;
+
+            while(i < length){
+                if(*Vector::borrow<u8>(domain, i) == 46u8){
+                    let v = Vector::empty<u8>();
+                    while(l < i){
+                        Vector::push_back<u8>(&mut v,*Vector::borrow<u8>(domain,l));
+                        l = l + 1;
+                    };
+                    l = l + 1;
+                    Vector::push_back<vector<u8>>(&mut domains, v);
+                };
+                i = i + 1;
+            };
+            let v = Vector::empty<u8>();
+                    while(l < i){
+                        Vector::push_back<u8>(&mut v,*Vector::borrow<u8>(domain,l));
+                        l = l + 1;
+                    };
+            Vector::push_back<vector<u8>>(&mut domains, v);
+            return domains
+
+        }
     }
 }
