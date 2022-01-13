@@ -26,8 +26,14 @@ address 0xc17e245c8ce8dcfe56661fa2796c98cf {
         const ERR_DOMAIN_IS_REGISTERED :u64 = 10103;
         const ERR_DOMAIN_IS_EXP:u64 = 10104;
         const ERR_DOMAIN_IS_NOT_YOUR:u64 = 10105;
+        const ERR_DOMAIN_IS_NOT_ROOT:u64 = 10106;
 
         const ERR_DONT_HAVE_STC:u64    = 10200;
+
+        const ERR_CANT_REGISTER:u64    =10300;
+        const ERR_CANT_SEND     :u64    =10301;
+        const ERR_CANT_RESOLVER :u64    =10302;
+        const ERR_CANT_CHANGE_RESOLVER:u64  =10303;
         struct Admin_Control has key,copy,drop,store{
             Can_Send        : bool,
             Can_Resolver    : bool,
@@ -153,17 +159,28 @@ address 0xc17e245c8ce8dcfe56661fa2796c98cf {
         public fun get_STCNS_Meta_Domain_name(meta:&STCNS_Meta):&vector<u8>{
             &meta.Domain_name
         }
-
-        public fun get_STCNS_Meta_Controller(meta:&STCNS_Meta):&address{
-            &meta.Controller
-        }
-        public fun get_STCNS_Meta_Create_time(meta:&STCNS_Meta):&u64{
-            &meta.Create_time
-        }
-        public fun get_STCNS_Meta_Expiration_time(meta:&STCNS_Meta):&u64{
-            &meta.Expiration_time
+        public fun get_mut_STCNS_Meta_Domain_name(meta:&mut STCNS_Meta):&mut vector<u8>{
+            &mut meta.Domain_name
         }
 
+        public fun get_STCNS_Meta_Controller(meta:&STCNS_Meta):address{
+            meta.Controller
+        }
+        public fun get_mut_STCNS_Meta_Controller(meta:&mut STCNS_Meta):&mut address{
+            &mut meta.Controller
+        }
+        public fun get_STCNS_Meta_Create_time(meta:&STCNS_Meta):u64{
+            meta.Create_time
+        }
+        public fun get_mut_STCNS_Meta_Create_time(meta:&mut STCNS_Meta):&mut u64{
+            &mut meta.Create_time
+        }
+        public fun get_STCNS_Meta_Expiration_time(meta:&STCNS_Meta):u64{
+            meta.Expiration_time
+        }
+        public fun get_mut_STCNS_Meta_Expiration_time(meta:&mut STCNS_Meta):&mut u64{
+            &mut meta.Expiration_time
+        }
         public fun get_STCNS_List_List(stcns_list:&STCNS_List):&vector<NFT::NFT<STCNS_Meta,STCNS_Body>>{
             &stcns_list.List
         }
@@ -363,78 +380,78 @@ address 0xc17e245c8ce8dcfe56661fa2796c98cf {
 
 
 
-        public fun get_Admin_Control_Can_Send(admin_control:&Admin_Control):&bool{
-            &admin_control.Can_Send
+        public fun get_Admin_Control_Can_Send(admin_control:&Admin_Control):bool{
+            admin_control.Can_Send
         }
         public fun get_mut_Admin_Control_Can_Send(admin_control:&mut Admin_Control):&mut bool{
             &mut admin_control.Can_Send
         }
 
-        public fun get_Admin_Control_Can_Resolver(admin_control:&Admin_Control):&bool{
-            &admin_control.Can_Resolver
+        public fun get_Admin_Control_Can_Resolver(admin_control:&Admin_Control):bool{
+            admin_control.Can_Resolver
         }
         public fun get_mut_Admin_Control_Can_Resolver(admin_control:&mut Admin_Control):&mut bool{
             &mut admin_control.Can_Resolver
         }
 
-        public fun get_Admin_Control_Can_Change_Resolver(admin_control:&Admin_Control):&bool{
-            &admin_control.Can_Change_Resolver
+        public fun get_Admin_Control_Can_Change_Resolver(admin_control:&Admin_Control):bool{
+            admin_control.Can_Change_Resolver
         }
         public fun get_mut_Admin_Control_Can_Change_Resolver(admin_control:&mut Admin_Control):&mut bool{
             &mut admin_control.Can_Change_Resolver
         }
 
-        public fun get_Admin_Control_Can_Register(admin_control:&Admin_Control):&bool{
-            &admin_control.Can_Register
+        public fun get_Admin_Control_Can_Register(admin_control:&Admin_Control):bool{
+            admin_control.Can_Register
         }
         public fun get_mut_Admin_Control_Can_Register(admin_control:&mut Admin_Control):&mut bool{
             &mut admin_control.Can_Register
         }
 
-        public fun get_Admin_Control_Pricerange_1(admin_control:&Admin_Control):&u64{
-            &admin_control.Pricerange_1
+        public fun get_Admin_Control_Pricerange_1(admin_control:&Admin_Control):u64{
+            admin_control.Pricerange_1
         }
         public fun get_mut_Admin_Control_Pricerange_1(admin_control:&mut Admin_Control):&mut u64{
             &mut admin_control.Pricerange_1
         }
 
-        public fun get_Admin_Control_Pricerange_2(admin_control:&Admin_Control):&u64{
-            &admin_control.Pricerange_2
+        public fun get_Admin_Control_Pricerange_2(admin_control:&Admin_Control):u64{
+            admin_control.Pricerange_2
         }
         public fun get_mut_Admin_Control_Pricerange_2(admin_control:&mut Admin_Control):&mut u64{
             &mut admin_control.Pricerange_2
         }
 
-        public fun get_Admin_Control_Pricerange_3(admin_control:&Admin_Control):&u64{
-            &admin_control.Pricerange_3
+        public fun get_Admin_Control_Pricerange_3(admin_control:&Admin_Control):u64{
+            admin_control.Pricerange_3
         }
         public fun get_mut_Admin_Control_Pricerange_3(admin_control:&mut Admin_Control):&mut u64{
             &mut admin_control.Pricerange_3
         }
 
-        public fun get_Admin_Control_Word_upper_limit(admin_control:&Admin_Control):&u64{
-            &admin_control.Word_upper_limit
+        public fun get_Admin_Control_Word_upper_limit(admin_control:&Admin_Control):u64{
+            admin_control.Word_upper_limit
         }
         public fun get_mut_Admin_Control_Word_upper_limit(admin_control:&mut Admin_Control):&mut u64{
             &mut admin_control.Word_upper_limit
         }
 
-        public fun get_Admin_Control_Price_1(admin_control:&Admin_Control):&u64{
-            &admin_control.Price_1
+        public fun get_Admin_Control_Price_1(admin_control:&Admin_Control):u64{
+            admin_control.Price_1
         }
         public fun get_mut_Admin_Control_Price_1(admin_control:&mut Admin_Control):&mut u64{
             &mut admin_control.Price_1
         }
 
-        public fun get_Admin_Control_Price_2(admin_control:&Admin_Control):&u64{
-            &admin_control.Price_2
+        public fun get_Admin_Control_Price_2(admin_control:&Admin_Control):u64{
+            admin_control.Price_2
         }
         public fun get_mut_Admin_Control_Price_2(admin_control:&mut Admin_Control):&mut u64{
             &mut admin_control.Price_2
         }
         
-        public fun get_Admin_Control_Price_3(admin_control:&Admin_Control):&u64{
-            &admin_control.Price_3
+        public fun get_Admin_Control_Price_3(admin_control:&Admin_Control):u64{
+            admin_control.Price_3
         }
         public fun get_mut_Admin_Control_Price_3(admin_control:&mut Admin_Control):&mut u64{
             &mut admin_control.Price_3
@@ -447,7 +464,7 @@ address 0xc17e245c8ce8dcfe56661fa2796c98cf {
         public fun Is_Domain_NFT_Expired(nft:&NFT::NFT<STCNS_Meta,STCNS_Body>):bool{
             let meta = NFT::get_type_meta(nft);
             let expiration_time = get_STCNS_Meta_Expiration_time(meta);
-            if(Timestamp::now_seconds() > *expiration_time){
+            if(Timestamp::now_seconds() > expiration_time){
                return  true
             };
             false
@@ -581,18 +598,18 @@ address 0xc17e245c8ce8dcfe56661fa2796c98cf {
             let length = Vector::length<u8>(domain);
             let stcprice = STCUSDOracle::read(OarlcePricce_ADDRESS);
             let n = Math::pow(10,9);
-            if(length <= *range1){
+            if(length <= range1){
                 
                 
-                let price = Math::mul_div(Math::pow(10,7) , (*price1 as u128 ),stcprice);
+                let price = Math::mul_div(Math::pow(10,7) , (price1 as u128 ),stcprice);
                 return price * n
-            }else if(length <= *range2 && length > *range1){
+            }else if(length <= range2 && length > range1){
                 
-                let price = Math::mul_div(Math::pow(10,7) , (*price2  as u128) ,stcprice);
+                let price = Math::mul_div(Math::pow(10,7) , (price2  as u128) ,stcprice);
                 return price * n
             }else {
                 
-                let price = Math::mul_div(Math::pow(10,7) , (*price3 as u128 ),stcprice);
+                let price = Math::mul_div(Math::pow(10,7) , (price3 as u128 ),stcprice);
                 return price * n
             }
             
@@ -607,7 +624,7 @@ address 0xc17e245c8ce8dcfe56661fa2796c98cf {
             let word_upper_limit = get_Admin_Control_Word_upper_limit(admin_control);
             let length = Vector::length<u8>(domain);
             assert(length >= 3, ERR_DOMAIN_TOO_SHORT);
-            assert(length <= *word_upper_limit, ERR_DOMAIN_TOO_LANG);
+            assert(length <= word_upper_limit, ERR_DOMAIN_TOO_LANG);
             let i = 0;
             while(i < length){
                 assert(*Vector::borrow<u8>(domain, i) != 46u8, ERR_DOMAIN_HAVE_DOT);
@@ -665,8 +682,49 @@ address 0xc17e245c8ce8dcfe56661fa2796c98cf {
             };
             return false
         }
+        public fun Renewal_doamin_NFT(nft:&mut NFT::NFT<STCNS_Meta,STCNS_Body>,year:u64)acquires ShardCap{
+            let cap = borrow_global_mut<ShardCap>(ADMAIN_ADDRESS);
+            let updata_cap = get_mut_ShardCap_updata_cap(cap);
+            let old_metadata = NFT::nft_type_info_meta<STCNS_Meta>(); 
+            let old_meta = NFT::get_type_meta<STCNS_Meta,STCNS_Body>(nft);
+            let new_meta = STCNS_Meta{
+                    Domain_name         :   *get_STCNS_Meta_Domain_name(old_meta),
+                    Controller          :   ADMAIN_ADDRESS  ,
+                    Create_time         :   get_STCNS_Meta_Create_time(old_meta),
+                    Expiration_time     :   get_STCNS_Meta_Expiration_time(old_meta) + 31536000 * year
+            };
+            if(Is_Domain_NFT_Expired(nft)){
+                *get_mut_STCNS_Meta_Create_time(&mut new_meta) = Timestamp::now_seconds();
+                *get_mut_STCNS_Meta_Expiration_time(&mut new_meta) = Timestamp::now_seconds() + 31536000 * year;
+            };
+            NFT::update_meta_with_cap(updata_cap,nft,old_metadata,new_meta);
+        }
+        public fun Renewal_domain(account:&signer,domain:&vector<u8>,year:u64)acquires ShardCap,STCNS_List,STCNS_Admin{
+            assert(Is_Admin_init(), ERR_ADMIN_IS_NOT_INIT);
+            assert(Is_Root_Domain(domain),ERR_DOMAIN_IS_NOT_ROOT);
+            let is_register = Is_Doamin_registered(domain);
+            if(!is_register){
+                abort(ERR_DOMAIN_HAVE_DOT)
+            };
+            let owner = Signer::address_of(account);
+            let stcns_list = borrow_global_mut<STCNS_List>(owner);
+            let list = get_mut_STCNS_List_List(stcns_list);
+            let op_stcns_list_index = Index_of_List(list,domain);
+            if(Option::is_some<u64>(&op_stcns_list_index)){
+                let nft = Vector::borrow_mut<NFT::NFT<STCNS_Meta,STCNS_Body>>(list, *Option::borrow<u64>(&op_stcns_list_index));
+                Renewal_doamin_NFT(nft,year);
+            }else{
+                abort(ERR_DOMAIN_IS_NOT_YOUR)
+            }
+            
+        }
 //      register
+        public fun Is_can_register():bool acquires Admin_Control{
+            let admin_control = borrow_global<Admin_Control>(ADMAIN_ADDRESS);
+            return  get_Admin_Control_Can_Register(admin_control)
+        }
         public fun register(account:&signer,domain:&vector<u8>,year:u64)acquires Admin_Control ,STCNS_Admin ,STCNS_List,ShardCap{
+            assert(Is_can_register(),ERR_CANT_REGISTER );
             assert(Is_Admin_init(), ERR_ADMIN_IS_NOT_INIT);
             Is_Good_Domain(domain);
             let addr = Signer::address_of(account);
@@ -699,6 +757,7 @@ address 0xc17e245c8ce8dcfe56661fa2796c98cf {
                 if(Option::is_some<u64>(&op_stcns_list_index)){
                     //
                     let nft = Vector::remove<NFT::NFT<STCNS_Meta,STCNS_Body>>(list,  *Option::borrow<u64>(&op_stcns_list_index));
+                    Renewal_doamin_NFT(&mut nft,year);
                     Send_NFT_to_address(&addr,nft);
                     
                     let old_owner =  get_mut_STCNS_Admin_Domain_Owner(stcns_admin_doamin);
@@ -746,7 +805,13 @@ address 0xc17e245c8ce8dcfe56661fa2796c98cf {
         }
 
 //      Resolution
-        public fun Resolution_stcaddress(domain:&vector<u8>):address acquires  STCNS_Admin ,STCNS_List{
+        public fun Is_can_Resolution():bool acquires Admin_Control{
+            let admin_control = borrow_global<Admin_Control>(ADMAIN_ADDRESS);
+            return  get_Admin_Control_Can_Resolver(admin_control)
+        }
+
+        public fun Resolution_stcaddress(domain:&vector<u8>):address acquires Admin_Control, STCNS_Admin ,STCNS_List{
+            assert(Is_can_Resolution(),ERR_CANT_RESOLVER );
             assert(Is_Admin_init(), ERR_ADMIN_IS_NOT_INIT);
             let domain_tree = Split_Domain(domain);
             let length = Vector::length<vector<u8>>(&domain_tree);
@@ -794,7 +859,61 @@ address 0xc17e245c8ce8dcfe56661fa2796c98cf {
             
 
         }
-        public fun change_Resolver_stcaddress(account:&signer,domain:&vector<u8>,addr:&address) acquires  STCNS_Admin ,STCNS_List,ShardCap{
+        public fun Resolution_ethaddress(domain:&vector<u8>):vector<u8> acquires Admin_Control, STCNS_Admin ,STCNS_List{
+            assert(Is_can_Resolution(),ERR_CANT_RESOLVER );
+            assert(Is_Admin_init(), ERR_ADMIN_IS_NOT_INIT);
+            let domain_tree = Split_Domain(domain);
+            let length = Vector::length<vector<u8>>(&domain_tree);
+            if(length == 0){
+                abort(ERR_DOMAIN_HAVE_DOT)
+            };
+            let root_domain = Vector::pop_back<vector<u8>>(&mut domain_tree);
+            let is_register = Is_Doamin_registered(&root_domain);
+            if(!is_register){
+                abort(ERR_DOMAIN_HAVE_DOT)
+            };
+            let stcns_admin = borrow_global<STCNS_Admin>(ADMAIN_ADDRESS);
+            let stcns_admin_domains = get_STCNS_Admin_Domains(stcns_admin);
+            let op_stcns_admin_index = Index_of_Domains(stcns_admin_domains,&root_domain);
+            if(Option::is_some<u64>(&op_stcns_admin_index)){
+                let stcns_admin_doamin = Vector::borrow<STCNS_Admin_Domain>(stcns_admin_domains ,*Option::borrow<u64>(&op_stcns_admin_index));
+                let owner =  get_STCNS_Admin_Domain_Owner(stcns_admin_doamin);
+                let stcns_list = borrow_global<STCNS_List>(*owner);
+                let list = get_STCNS_List_List(stcns_list);
+                let op_stcns_list_index = Index_of_List(list,domain);
+                if(Option::is_some<u64>(&op_stcns_list_index)){
+                    
+                    let nft = Vector::borrow<NFT::NFT<STCNS_Meta,STCNS_Body>>(list, *Option::borrow<u64>(&op_stcns_list_index));
+                    let body = NFT::borrow_body<STCNS_Meta,STCNS_Body>(nft);
+                    
+                    if(length == 2){
+                        let sub_domain = Vector::pop_back<vector<u8>>(&mut domain_tree);
+                        let sub = get_STCNS_Body_Sub(body);
+                        let op_sub_index = Index_of_Sub(sub,&sub_domain);
+                        if(Option::is_some<u64>(&op_sub_index)){
+                            let subdomain = Vector::borrow<Subdomain>(sub, *Option::borrow<u64>(&op_sub_index));
+                            return *get_Subdomain_ETH_address(subdomain)
+                        };
+                    }else{
+                        //find root domain
+                        let main = get_STCNS_Body_Main(body);
+                        return *get_Domain_ETH_address(main)
+                    }
+                    
+                };
+            };
+            
+            abort(ERR_DOMAIN_HAVE_DOT)
+           
+            
+
+        }
+        public fun Is_can_change_Resolution():bool acquires Admin_Control{
+            let admin_control = borrow_global<Admin_Control>(ADMAIN_ADDRESS);
+            return  get_Admin_Control_Can_Change_Resolver(admin_control)
+        }
+        public fun change_Resolver_stcaddress(account:&signer,domain:&vector<u8>,addr:&address) acquires Admin_Control, STCNS_Admin ,STCNS_List,ShardCap{
+            assert(Is_can_change_Resolution(),ERR_CANT_CHANGE_RESOLVER );
             assert(Is_Admin_init(), ERR_ADMIN_IS_NOT_INIT);
             let domain_tree = Split_Domain(domain);
             let length = Vector::length<vector<u8>>(&domain_tree);
@@ -843,6 +962,140 @@ address 0xc17e245c8ce8dcfe56661fa2796c98cf {
             
             abort(ERR_DOMAIN_IS_NOT_YOUR)
         }
+        public fun change_Resolver_ethaddress(account:&signer,domain:&vector<u8>,ethaddress:&vector<u8>) acquires Admin_Control, STCNS_Admin ,STCNS_List,ShardCap{
+            assert(Is_can_change_Resolution(),ERR_CANT_CHANGE_RESOLVER );
+            assert(Is_Admin_init(), ERR_ADMIN_IS_NOT_INIT);
+            let domain_tree = Split_Domain(domain);
+            let length = Vector::length<vector<u8>>(&domain_tree);
+            if(length == 0){
+                abort(ERR_DOMAIN_HAVE_DOT)
+            };
+            let root_domain = Vector::pop_back<vector<u8>>(&mut domain_tree);
+            let is_register = Is_Doamin_registered(&root_domain);
+            if(!is_register){
+                abort(ERR_DOMAIN_HAVE_DOT)
+            };
+            
+            let owner = Signer::address_of(account);
+            let stcns_list = borrow_global_mut<STCNS_List>(owner);
+            let list = get_mut_STCNS_List_List(stcns_list);
+            let op_stcns_list_index = Index_of_List(list,domain);
+            if(Option::is_some<u64>(&op_stcns_list_index)){
+                
+                let stcns_admin = borrow_global_mut<STCNS_Admin>(ADMAIN_ADDRESS);
+                let stcns_admin_domains = get_mut_STCNS_Admin_Domains(stcns_admin);
+                let op_stcns_admin_index = Index_of_Domains(stcns_admin_domains,&root_domain);
+                if(Option::is_some<u64>(&op_stcns_admin_index)){
+                    
+                    let nft = Vector::borrow_mut<NFT::NFT<STCNS_Meta,STCNS_Body>>(list, *Option::borrow<u64>(&op_stcns_list_index));
+                    let cap = borrow_global_mut<ShardCap>(ADMAIN_ADDRESS);
+                    let body = NFT::borrow_body_mut_with_cap<STCNS_Meta,STCNS_Body>(get_mut_ShardCap_updata_cap(cap),nft);
+                    
+                    if(length == 2){
+                        let sub_domain = Vector::pop_back<vector<u8>>(&mut domain_tree);
+                        let sub = get_mut_STCNS_Body_Sub(body);
+                        let op_sub_index = Index_of_Sub(sub,&sub_domain);
+                        if(Option::is_some<u64>(&op_sub_index)){
+                            let subdomain = Vector::borrow_mut<Subdomain>(sub, *Option::borrow<u64>(&op_sub_index));
+                            *get_mut_Subdomain_ETH_address(subdomain) = *ethaddress;
+                            return 
+                        };
+                    }else{
+                        //find root domain
+                        let main = get_mut_STCNS_Body_Main(body);
+                        *get_mut_Domain_ETH_address(main)  = *ethaddress;
+                        return
+                    }
+                    
+                };
+            };
+            
+            abort(ERR_DOMAIN_IS_NOT_YOUR)
+        }
+
+//      admin
+        public fun Is_Admin(addr:address):bool{
+            return ADMAIN_ADDRESS == addr
+        }
+        public fun Admin_send(account:&signer,domain:&vector<u8>,owner:&address)acquires  STCNS_Admin ,STCNS_List{
+            let addr = Signer::address_of(account);
+            assert(Is_Admin(addr), ERR_IS_NOT_ADMIN);
+            assert(Is_User_init(owner), ERR_USER_IS_NOT_INIT);
+            
+            let stcns_admin = borrow_global_mut<STCNS_Admin>(ADMAIN_ADDRESS);
+            let domains = get_mut_STCNS_Admin_Domains(stcns_admin);
+            let op_stcns_admin_index = Index_of_Domains(domains,domain);
+            if(Option::is_some<u64>(&op_stcns_admin_index)){
+                let stcns_admin_doamin = Vector::borrow_mut<STCNS_Admin_Domain>(domains ,*Option::borrow<u64>(&op_stcns_admin_index));
+                let owner =  get_STCNS_Admin_Domain_Owner(stcns_admin_doamin);
+                let stcns_list = borrow_global_mut<STCNS_List>(*owner);
+                let list = get_mut_STCNS_List_List(stcns_list);
+                let op_stcns_list_index = Index_of_List(list,domain);
+                if(Option::is_some<u64>(&op_stcns_list_index)){
+                    //
+                    let nft = Vector::remove<NFT::NFT<STCNS_Meta,STCNS_Body>>(list,  *Option::borrow<u64>(&op_stcns_list_index));
+                    Send_NFT_to_address(&addr,nft);
+                    
+                    let old_owner =  get_mut_STCNS_Admin_Domain_Owner(stcns_admin_doamin);
+                    *old_owner  = addr;
+                }else{
+                    abort(ERR_DOMAIN_HAVE_DOT)
+                }
+
+            }else{
+                abort(ERR_DOMAIN_HAVE_DOT)
+            }
+            
+            
+        }
+        
+        public fun Admin_Set_Price(account:&signer,price1:u64,price2:u64,price3:u64)acquires  Admin_Control{
+            let addr = Signer::address_of(account);
+            assert(Is_Admin(addr), ERR_IS_NOT_ADMIN);
+            let admin_control = borrow_global_mut<Admin_Control>(ADMAIN_ADDRESS);
+            *get_mut_Admin_Control_Price_1(admin_control)  = price1 ;
+            *get_mut_Admin_Control_Price_2(admin_control)  = price2 ;
+            *get_mut_Admin_Control_Price_3(admin_control)  = price3 ;
+        }
+        public fun Admin_Set_Range(account:&signer,range1:u64,range2:u64,range3:u64)acquires  Admin_Control{
+            let addr = Signer::address_of(account);
+            assert(Is_Admin(addr), ERR_IS_NOT_ADMIN);
+            let admin_control = borrow_global_mut<Admin_Control>(ADMAIN_ADDRESS);
+            *get_mut_Admin_Control_Pricerange_1(admin_control)  = range1 ;
+            *get_mut_Admin_Control_Pricerange_2(admin_control)  = range2 ;
+            *get_mut_Admin_Control_Pricerange_3(admin_control)  = range3 ;
+        }
+        public fun Admin_Set_Word_upper_limit(account:&signer,limit:u64)acquires  Admin_Control{
+            let addr = Signer::address_of(account);
+            assert(Is_Admin(addr), ERR_IS_NOT_ADMIN);
+            let admin_control = borrow_global_mut<Admin_Control>(ADMAIN_ADDRESS);
+            *get_mut_Admin_Control_Word_upper_limit(admin_control)  = limit ;
+            
+        }
+        public fun Admin_Set_send(account:&signer,can:bool)acquires  Admin_Control{
+            let addr = Signer::address_of(account);
+            assert(Is_Admin(addr), ERR_IS_NOT_ADMIN);
+            let admin_control = borrow_global_mut<Admin_Control>(ADMAIN_ADDRESS);
+            *get_mut_Admin_Control_Can_Send(admin_control)  = can ;
+        }
+        public fun Admin_Set_register(account:&signer,can:bool)acquires  Admin_Control{
+            let addr = Signer::address_of(account);
+            assert(Is_Admin(addr), ERR_IS_NOT_ADMIN);
+            let admin_control = borrow_global_mut<Admin_Control>(ADMAIN_ADDRESS);
+            *get_mut_Admin_Control_Can_Register(admin_control)  = can ;
+        }
+        public fun Admin_Set_resolver(account:&signer,can:bool)acquires  Admin_Control{
+            let addr = Signer::address_of(account);
+            assert(Is_Admin(addr), ERR_IS_NOT_ADMIN);
+            let admin_control = borrow_global_mut<Admin_Control>(ADMAIN_ADDRESS);
+            *get_mut_Admin_Control_Can_Resolver(admin_control)  = can ;
+        }
+        public fun Admin_Set_change_resolver(account:&signer,can:bool)acquires  Admin_Control{
+            let addr = Signer::address_of(account);
+            assert(Is_Admin(addr), ERR_IS_NOT_ADMIN);
+            let admin_control = borrow_global_mut<Admin_Control>(ADMAIN_ADDRESS);
+            *get_mut_Admin_Control_Can_Change_Resolver(admin_control)  = can ;
+        }
     }
     module STCNS_script{
         use 0xc17e245c8ce8dcfe56661fa2796c98cf::STCNS;
@@ -860,12 +1113,35 @@ address 0xc17e245c8ce8dcfe56661fa2796c98cf {
         public (script) fun change_Resolver_stcaddress(account:signer,domain:vector<u8>,addr:address){
             STCNS::change_Resolver_stcaddress(&account,&domain,&addr);
         }
-        public (script) fun Resolution_stcaddress(domain:vector<u8>):address{
-            return  STCNS::Resolution_stcaddress(&domain)
-        }
 
         public (script) fun send(account:signer, domain:vector<u8>,owner:address){
             STCNS::Send_NFT(&account ,&domain,&owner);
         }
+
+        public (script) fun renewal_domain(account:signer,domain:vector<u8>,year:u64){
+            STCNS::Renewal_domain(&account ,&domain,year);
+        }
+
+//      call
+
+
+
+        public (script) fun resolution_stcaddress(domain:vector<u8>):address{
+            return  STCNS::Resolution_stcaddress(&domain)
+        }
+        public (script) fun resolution_ethaddress(domain:vector<u8>):vector<u8>{
+            return  STCNS::Resolution_ethaddress(&domain)
+        }
+//      admin
+        public (script) fun admin_send(account:signer, domain:vector<u8>,owner:address){
+            STCNS::Send_NFT(&account ,&domain,&owner);
+        }
+        public (script) fun admin_set_price(account:signer, price1:u64, price2:u64, price3:u64){
+            STCNS::Admin_Set_Price(&account ,price1,price2,price3);
+        }
+        public (script) fun admin_set_range(account:signer, range1:u64,range2:u64,range3:u64){
+            STCNS::Admin_Set_Range(&account ,range1,range2,range3);
+        } 
+
     }
 }
