@@ -669,15 +669,15 @@ address 0xc17e245c8ce8dcfe56661fa2796c98cf {
             if(length <= range1){
                 
                 
-                let price = Math::mul_div(Math::pow(10,7) , (price1 as u128 ),stcprice);
+                let price = Math::mul_div(Math::pow(10,6) , (price1 as u128 ),stcprice);
                 return price * n
             }else if(length <= range2 && length > range1){
                 
-                let price = Math::mul_div(Math::pow(10,7) , (price2  as u128) ,stcprice);
+                let price = Math::mul_div(Math::pow(10,6) , (price2  as u128) ,stcprice);
                 return price * n
             }else {
                 
-                let price = Math::mul_div(Math::pow(10,7) , (price3 as u128 ),stcprice);
+                let price = Math::mul_div(Math::pow(10,6) , (price3 as u128 ),stcprice);
                 return price * n
             }
             
@@ -767,7 +767,7 @@ address 0xc17e245c8ce8dcfe56661fa2796c98cf {
             };
             NFT::update_meta_with_cap(updata_cap,nft,old_metadata,new_meta);
         }
-        public fun Renewal_domain(account:&signer,domain:&vector<u8>,year:u64)acquires ShardCap,STCNS_List,STCNS_Admin{
+        public fun Renewal_domain(account:&signer,domain:&vector<u8>,year:u64)acquires Admin_Control,ShardCap,STCNS_List,STCNS_Admin{
             assert(Is_Admin_init(), ERR_ADMIN_IS_NOT_INIT);
             assert(Is_Root_Domain(domain),ERR_DOMAIN_IS_NOT_ROOT);
             let is_register = Is_Doamin_registered(domain);
@@ -775,12 +775,19 @@ address 0xc17e245c8ce8dcfe56661fa2796c98cf {
                 abort(ERR_DOMAIN_HAVE_DOT)
             };
             let owner = Signer::address_of(account);
+            let balance = Account::balance<0x1::STC::STC>(owner);
+            
+            let much = get_much_Doamin(domain)* (year as u128) ;
+
+            assert(balance > much , ERR_DONT_HAVE_STC);
+            
             let stcns_list = borrow_global_mut<STCNS_List>(owner);
             let list = get_mut_STCNS_List_List(stcns_list);
             let op_stcns_list_index = Index_of_List(list,domain);
             if(Option::is_some<u64>(&op_stcns_list_index)){
                 let nft = Vector::borrow_mut<NFT::NFT<STCNS_Meta,STCNS_Body>>(list, *Option::borrow<u64>(&op_stcns_list_index));
                 Renewal_doamin_NFT(nft,year);
+                Account::pay_from<0x1::STC::STC>(account,ADMAIN_ADDRESS,much);
             }else{
                 abort(ERR_DOMAIN_IS_NOT_YOUR)
             }
@@ -810,7 +817,7 @@ address 0xc17e245c8ce8dcfe56661fa2796c98cf {
             let much = get_much_Doamin(domain)* (year as u128) ;
             assert(balance > much , ERR_DONT_HAVE_STC);
             // 
-            Account::pay_from<0x1::STC::STC>(account,ADMAIN_ADDRESS,much);
+            
 
             if(is_register){
                 let stcns_admin = borrow_global_mut<STCNS_Admin>(ADMAIN_ADDRESS);
@@ -869,7 +876,8 @@ address 0xc17e245c8ce8dcfe56661fa2796c98cf {
                 let stcns_list = borrow_global_mut<STCNS_List>(addr);
                 let list = get_mut_STCNS_List_List(stcns_list);
                 Vector::push_back<NFT::NFT<STCNS_Meta,STCNS_Body>>(list, nft);
-            }
+            };
+            Account::pay_from<0x1::STC::STC>(account,ADMAIN_ADDRESS,much);
         }
 
 //      Resolution
