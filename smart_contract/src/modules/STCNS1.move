@@ -8,8 +8,9 @@ address 0xc17e245c8ce8dcfe56661fa2796c98cf {
         use 0x1::Option;
         use 0x1::Account;
         use 0x1::Math;
+        use 0x1::STCUSDOracle;
         const ADMAIN_ADDRESS : address = @0xc17e245c8ce8dcfe56661fa2796c98cf;
-        
+        const OarlcePricce_ADDRESS : address = @0x07fa08a855753f0ff7292fdcbe871216;
         
         const ERR_IS_NOT_ADMIN:u64 = 10000;
         const CAN_NOT_FINDED:u64 = 10001;
@@ -578,17 +579,27 @@ address 0xc17e245c8ce8dcfe56661fa2796c98cf {
             let _range3 = get_Admin_Control_Pricerange_3(admin_control);
 
             let length = Vector::length<u8>(domain);
-            
+            let stcprice = STCUSDOracle::read(OarlcePricce_ADDRESS);
             let n = Math::pow(10,9);
-            let u_stc = 12;
-
             if(length <= *range1){
-                return ( n as u128) * (u_stc as u128) * (*price1 as u128)
+                
+                
+                let price = Math::mul_div(Math::pow(10,7) , (*price1 as u128 ),stcprice);
+                return price * n
             }else if(length <= *range2 && length > *range1){
-                return ( n as u128) * (u_stc as u128) * (*price2 as u128)
+                
+                let price = Math::mul_div(Math::pow(10,7) , (*price2  as u128) ,stcprice);
+                return price * n
             }else {
-                return( n as u128) * (u_stc as u128) * (*price3 as u128)
+                
+                let price = Math::mul_div(Math::pow(10,7) , (*price3 as u128 ),stcprice);
+                return price * n
             }
+            
+            
+            
+
+            
         }
 //      domain
         public fun Is_Good_Domain(domain:&vector<u8>):bool  acquires Admin_Control{
