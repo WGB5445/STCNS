@@ -50,8 +50,31 @@ const send_transaction_arg = async (functionId,typearg,args)=>{
         const transactionHash = await starcoinProvider.getSigner().sendUncheckedTransaction(txParams)
         return transactionHash
 }
+
+const call = async(functionId,typearg,args) => {
+  let starcoinProvider =   new providers.Web3Provider(window.starcoin, 'any')
+  
+  return new  Promise((resolver,reject)=>{ starcoinProvider.send(
+       'contract.call_v2',
+       [
+         {
+           function_id: functionId,
+           type_args: typearg,
+           args:args,
+         },
+       ],
+     ).then((result) => {
+
+          resolver(result)
+
+     })
+    })
+   
+}
+
 export  {
     get_account,
     send_transaction,
-    send_transaction_arg
+    send_transaction_arg,
+    call
 };
