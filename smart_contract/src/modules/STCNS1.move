@@ -110,6 +110,15 @@ address 0xc17e245c8ce8dcfe56661fa2796c98cf {
             Meta        :       STCNS_Meta,
             Body        :       STCNS_Body
         }
+        struct STCNS_Domain has copy,drop,store{
+            Owner       :       address,
+            Name      :       vector<u8>,
+            Create_time :       u64,
+            Expiration_time:    u64
+        }
+        struct STCNS_Info1 has copy,drop,store{
+            Domains     :       vector<STCNS_Domain>
+        }
        public fun get_STCNS_Admin_Domains (stcns_admin:&STCNS_Admin):&vector<STCNS_Admin_Domain>{
             &stcns_admin.Domains
         }
@@ -1125,6 +1134,34 @@ address 0xc17e245c8ce8dcfe56661fa2796c98cf {
             };
             abort(ERR_DOMAIN_HAVE_DOT)
         }
+
+
+
+        public fun Get_Owner_all_domain(addr:address):STCNS_Info1 acquires STCNS_List{
+            assert(Is_User_init(&addr),ERR_USER_IS_INITED);
+            let domains = Vector::empty<STCNS_Domain>();
+            let stcns_list = borrow_global<STCNS_List>(addr);
+            let list = get_STCNS_List_List(stcns_list);
+            let length = Vector::length<NFT::NFT<STCNS_Meta,STCNS_Body>>(list);
+            let i = 0 ;
+            while(i < length){
+                let nft = Vector::borrow<NFT::NFT<STCNS_Meta,STCNS_Body>>(list, i);
+                let meta = NFT::get_type_meta<STCNS_Meta,STCNS_Body>(nft);
+                let stcns_domain = STCNS_Domain{
+                        Owner   :   addr,
+                        Name    :   *get_STCNS_Meta_Domain_name(meta),
+                        Create_time : get_STCNS_Meta_Create_time(meta),
+                        Expiration_time : get_STCNS_Meta_Expiration_time(meta),
+                };
+                Vector::push_back<STCNS_Domain>(&mut domains, stcns_domain);
+                i = i + 1;
+            };
+            let info = STCNS_Info1 {
+                Domains     :   domains
+            };
+            return info
+
+        }
 //      admin
         public fun Is_Admin(addr:address):bool{
             return ADMAIN_ADDRESS == addr
@@ -1246,6 +1283,11 @@ address 0xc17e245c8ce8dcfe56661fa2796c98cf {
         public (script) fun resolution_ethaddress(domain:vector<u8>):vector<u8>{
             return  STCNS::Resolution_ethaddress(&domain)
         }
+
+        public (script) fun get_Owner_all_domain(addr:address):STCNS::STCNS_Info1{
+            return STCNS::Get_Owner_all_domain(addr)
+        }
+
 //      admin
         public (script) fun admin_send(account:signer, domain:vector<u8>,owner:address){
             STCNS::Send_NFT(&account ,&domain,&owner);
