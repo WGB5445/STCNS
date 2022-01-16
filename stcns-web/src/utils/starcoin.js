@@ -14,6 +14,15 @@ const  get_account = async  (  )=>{
       
     return account
 }
+const  get_id = async  (  )=>{
+
+    const chainInfo = await window.starcoin.request({
+        method: 'chain.id',
+    })
+    let id = chainInfo
+
+    return id
+}
 
 //发送无参数交易
 const send_transaction = async (functionId,typearg)=>{
@@ -74,6 +83,7 @@ const call = async(functionId,typearg,args) => {
 
 export  {
     get_account,
+    get_id,
     send_transaction,
     send_transaction_arg,
     call
