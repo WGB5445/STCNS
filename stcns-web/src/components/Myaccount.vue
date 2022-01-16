@@ -51,6 +51,7 @@
 <script>
 import {get_account,send_transaction,send_transaction_arg,call} from '../utils/starcoin.js'
 export default {
+    name:'myaccount',
     props: {
         module :"",
         admin :"",

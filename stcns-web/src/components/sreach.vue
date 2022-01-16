@@ -1,5 +1,8 @@
 <template>
-  <input type="text">
+  <div style="height: max-content ;">
+
+
+  </div>
 </template>
 
 <script>

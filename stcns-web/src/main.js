@@ -7,4 +7,9 @@ import 'vfonts/Lato.css'
 import 'vfonts/FiraCode.css'
 import naive from 'naive-ui'
 
-createApp(App).use(store).use(naive).use(router).mount('#app')
+
+
+
+const  app = createApp(App)
+
+app.use(store).use(naive).use(router).mount('#app')

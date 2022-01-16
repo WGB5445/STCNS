@@ -19,7 +19,7 @@
                   </template>
 
                   <template #description >
-                    {{User.network_info.name}}网络
+                      {{User.network_info.name}}网络
                   </template>
 
                   <template #action >
@@ -43,9 +43,9 @@
             <n-grid-item>
 
             </n-grid-item>
-            <n-grid-item>
+            <n-grid-item >
               <n-space>
-                <n-button text v-if="User.connect">
+                <n-button text v-if="User.connect" >
                   我的账户
                 </n-button>
                 <n-button text>
@@ -56,8 +56,27 @@
           </n-grid>
 
         </n-layout-header>
-        <n-layout-content content-style="padding: 24px;">平山道</n-layout-content>
-        <n-layout-footer>成府路</n-layout-footer>
+        <n-layout-content >
+          <n-grid cols="12" >
+            <n-grid-item span="3">
+
+            </n-grid-item>
+            <n-grid-item span="6">
+              <div >
+                <n-input-group>
+
+                  <n-input type="text" size="large" v-model:value="value"  style="text-align:left"/>
+                  <n-button type="primary" ghost size="large">搜索</n-button>
+                </n-input-group>
+              </div>
+            </n-grid-item>
+            <n-grid-item span="3">
+
+            </n-grid-item>
+          </n-grid>
+
+        </n-layout-content>
+<!--        <n-layout-footer>成府路</n-layout-footer>-->
       </n-layout>
     </n-space>
 
@@ -389,18 +408,6 @@ export default {
 
 <!-- Add "scoped" attribute to limit CSS to this component only -->
 <style scoped>
-h3 {
-  margin: 40px 0 0;
-}
-ul {
-  list-style-type: none;
-  padding: 0;
-}
-li {
-  display: inline-block;
-  margin: 0 10px;
-}
-a {
-  color: #42b983;
-}
+
+
 </style>
