@@ -42,14 +42,19 @@
 
             </n-card>
             <n-anchor-link style="font-size: 25px" title="我的账户"  @click="Com = 'Myaccount'"/>
-
+            <n-anchor-link  style="font-size: 25px"  title="搜索" @click="Com = 'Sreach'" />
+            <n-anchor-link  style="font-size: 25px"  title="转账" @click="Com = 'Payfor'" />
             <n-anchor-link  style="font-size: 25px"  title="关于" @click="Com = 'about'" />
 
           </n-anchor>
         </n-layout-sider>
 
         <n-layout content-style="padding: 24px;">
-          <Myaccount v-if="Com == 'Myaccount'" :User.sync="User" :module.sync="module" :admin = "admin" />
+          <Myaccount v-if="Com == 'Myaccount'" :User.sync="User" :module.sync="module" :admin = "admin" @click_domain="click_domain" />
+          <Sreach v-if="Com == 'Sreach'" :User.sync="User" :module.sync="module" :admin = "admin" />
+          <Pay_for v-if="Com == 'Payfor'" :User.sync="User" :module.sync="module" :admin = "admin" />
+          <Register v-if="Com == 'Register'" :User.sync="User" :module.sync="module" :admin = "admin" />
+          <Details v-if="Com == 'Details'" :User.sync="User" :module.sync="module" :admin = "admin"  :domain.sync="click_domainn" />
         </n-layout>
       </n-layout>
 
@@ -71,13 +76,19 @@ import { compare } from 'compare-versions';
 import HelloWorld from '@/components/HelloWorld.vue'
 import Sreach from '@/components/sreach.vue'
 import Myaccount from '@/components/Myaccount.vue'
+import Pay_for from '@/components/Pay_for.vue'
+import Register from '@/components/Register.vue'
+import Details from '@/components/Details.vue'
 import {get_account,get_id, send_transaction,send_transaction_arg,call} from '../utils/starcoin.js'
 export default {
   name: 'Home',
   components: {
     HelloWorld,
     Sreach,
-    Myaccount
+    Myaccount,
+    Pay_for,
+    Register,
+    Details
   },
 
   async created() {
@@ -112,7 +123,8 @@ export default {
               name: String,
               id: Number,
             }
-       }
+        },
+      click_domainn:"",
 
 
     }
@@ -130,7 +142,12 @@ export default {
         this.User.connect = true
         console.log(this.User.connect)
       }
+    },
+    click_domain(domain){
+        this.click_domainn = domain
+      this.Com = "Details"
     }
+
   }
 
 

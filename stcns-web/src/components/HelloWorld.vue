@@ -49,6 +49,9 @@
                   我的账户
                 </n-button>
                 <n-button text>
+                  搜索
+                </n-button>
+                <n-button text>
                   关于
                 </n-button>
               </n-space>

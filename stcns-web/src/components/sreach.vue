@@ -1,6 +1,6 @@
 <template>
   <div style="height: max-content ;">
-
+      我是搜索界面
 
   </div>
 </template>

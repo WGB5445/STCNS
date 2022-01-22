@@ -6,16 +6,16 @@
                     </h2> 
                 </n-gi>
                 <n-gi class="align-center">
-                    <n-button class="button" text v-if="User.account != ''" @click="call">
+                    <n-button class="button" text v-if="User.account != ''" @click="test">
                         在Stcscan上查看
                     </n-button>
                 </n-gi>
             </n-grid>
     
             <n-divider />
-            <n-button class="button" text v-if="User.account != ''" @click="get_domain">
-                查看
-            </n-button>
+<!--            <n-button class="button" text v-if="User.account != ''" @click="get_domain">-->
+<!--                查看-->
+<!--            </n-button>-->
             <div style="text-align:left">
                <n-list bordered>
                     <template #header> 已注册 </template>
@@ -29,7 +29,7 @@
                             </n-avatar>
                         </template>
                         <template #header > 
-                             <n-button  text  @click="call">
+                             <n-button  text  @click="click_domain(hexCharCodeToStr(item.Name))">
                                 {{hexCharCodeToStr(item.Name)}}
                             </n-button>
                         </template>
@@ -101,7 +101,15 @@ export default {
         },
         getLocalTime(nS) {     
             return new Date(parseInt(nS) * 1000).toLocaleString().replace(/:\d{1,2}$/,' ');     
-        }
+        },
+       test(){
+        window.open('https://stcscan.io/search/'+this.User.account)
+       },
+      click_domain(domain){
+        this.$emit('click_domain',domain)
+      }
+
+
     },
 }
 </script>

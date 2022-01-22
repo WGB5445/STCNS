@@ -1,5 +1,5 @@
 <template>
-    
+    我是转账界面
 </template>
 
 <script>
