@@ -1,15 +1,25 @@
 <template>
   <div style="height: max-content ;">
-      我是搜索界面
+    <Details :User.sync="User" :module.sync="module" :admin = "admin"  :domain.sync="domain" />
 
   </div>
 </template>
 
 <script>
+import Details from "./Details";
 export default {
-    data(){
+  components: {Details},
+  props: {
+    module :"",
+    admin :"",
+    User:{
+      account:"",
+    },
+    domain:'',
+  },
+  data(){
         return{
-           name:"", 
+
         }
     }
 }

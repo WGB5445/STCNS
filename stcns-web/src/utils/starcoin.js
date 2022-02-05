@@ -44,7 +44,8 @@ const send_transaction = async (functionId,typearg)=>{
 const send_transaction_arg = async (functionId,typearg,args)=>{
     let starcoinProvider =   new providers.Web3Provider(window.starcoin, 'any')
     const scriptFunction =await utils.tx.encodeScriptFunctionByResolve(functionId, typearg, args,'https://barnard-seed.starcoin.org')
-        // Multiple BcsSerializers should be used in different closures, otherwise, the latter will be contaminated by the former.
+    console.log(scriptFunction)
+    // Multiple BcsSerializers should be used in different closures, otherwise, the latter will be contaminated by the former.
         const payloadInHex = (function () {
           const se = new bcs.BcsSerializer()
           scriptFunction.serialize(se)
@@ -55,7 +56,7 @@ const send_transaction_arg = async (functionId,typearg,args)=>{
         const txParams = {
           data: payloadInHex,
         }
-
+        txParams.expiredSecs = 120
         const transactionHash = await starcoinProvider.getSigner().sendUncheckedTransaction(txParams)
         return transactionHash
 }
@@ -76,7 +77,9 @@ const call = async(functionId,typearg,args) => {
 
           resolver(result)
 
-     })
+     }).catch((err)=>{
+       reject(err)
+  })
     })
    
 }

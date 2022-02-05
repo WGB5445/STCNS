@@ -52,13 +52,27 @@
               </div>
             </n-grid-item>
             <n-grid-item span="3">
-              <div style="float: left;">
+              <div style="float: left;" v-if="Is_wantSend">
                 {{domain_info.Owner}}
               </div>
+              <n-input-group v-else>
+                <n-input
+                    v-model:value="Receive_owner"
+                    placeholder="接收地址"
+                />
+                <n-button  ghost @click="Send_to()">
+                  发送
+                </n-button>
+              </n-input-group>
             </n-grid-item>
             <n-grid-item span="1">
-              <n-button ghost v-if="domain_info.Owner == User.account" @click="Send_to">
-                转让
+              <n-button ghost v-if="domain_info.Owner == User.account" @click="Is_wantSend =! Is_wantSend;Receive_owner = ''">
+                <template v-if="Is_wantSend">
+                  转让
+                </template>
+                <template v-else>
+                  取消转让
+                </template>
               </n-button>
             </n-grid-item>
             <n-grid-item span="1">
@@ -83,7 +97,7 @@
           </n-grid>
         </n-space>
         <p></p>
-        <n-grid :x-gap="5" :y-gap="8" :cols="5">
+        <n-grid :x-gap="5" :y-gap="8" :cols="5" v-if="Is_register">
           <n-grid-item span="1">
             <div style="float: left;">
               解析记录：
@@ -103,43 +117,34 @@
             </div>
           </n-grid-item>
         </n-grid>
-          <div  v-if="Is_register">
-            <n-grid :x-gap="5" :y-gap="8" :cols="5">
-              <n-grid-item span="1">
+        <div  v-if="Is_register">
+          <n-grid :x-gap="5" :y-gap="8" :cols="5">
+            <n-grid-item span="1">
 
-              </n-grid-item>
-              <n-grid-item span="4">
-                <div style="float:left">
-                  地址：
-                </div>
-              </n-grid-item>
-              <n-grid-item span="1">
+            </n-grid-item>
+            <n-grid-item span="4">
+              <div style="float:left">
+                地址：
+              </div>
+            </n-grid-item>
+            <n-grid-item span="1">
 
-              </n-grid-item>
-              <n-grid-item span="1">
-                STC：
-              </n-grid-item>
-              <n-grid-item span="3" v-if="Is_change">
-                <n-input-group>
-                  <n-input v-model:value="new_Main.STC_address" type="text"   />
-                </n-input-group>
-              </n-grid-item>
-              <n-grid-item span="3" v-else>
-                {{new_Main.STC_address}}
-              </n-grid-item>
+            </n-grid-item>
+            <n-grid-item span="1">
+              STC：
+            </n-grid-item>
+            <n-grid-item span="3" v-if="Is_change">
+              <n-input-group>
+                <n-input v-model:value="new_Main.STC_address" type="text"   />
+              </n-input-group>
+            </n-grid-item>
+            <n-grid-item span="3" v-else>
+              {{new_Main.STC_address}}
+            </n-grid-item>
 
-            </n-grid>
-            </div>
-            <div v-else>
-              <p></p>
-              地址：
-              <p></p>
-              STC：{{domain_info.Body.Main.STC_address}}
-
-              <p></p>
-              ETH: {{domain_info.Body.Main.ETH_address}}
-            </div>
+          </n-grid>
           </div>
+        </div>
 
 
 
@@ -148,8 +153,8 @@
         <div v-if="Is_register">
           该域名被已经注册
         </div>
-        <div v-else-if="Is_register">
-          注册
+        <div v-else>
+          
         </div>
       </div>
       <div v-if="Com == 'subdomain'">
@@ -218,6 +223,8 @@ export default {
       Is_register:Boolean,
       Is_loaded:Boolean,
       Com:'Details',
+      Is_wantSend:Boolean,
+      Receive_owner:'',
     }
   },
   mounted(){
@@ -226,13 +233,20 @@ export default {
   },
   methods:{
     async get_domain_info(){
-      if(this.User.account == "" && domain == "")
+      if(this.User.account == "" && this.domain == "")
         return
-      let result = await call(this.module + "::get_domain_info",[],['b\"'+this.domain+"\""]).catch(error=>{
+      let result
+
+
+        result = await call(this.module + "::get_domain_info",[],['b\"'+this.domain+"\""]).catch(error=>{
           this.Is_register = false
-        this.Is_loaded = true
-        return
-      });
+          this.Is_loaded = true
+          console.log("未找到")
+          return
+        });
+
+
+
       this.domain_info = result[0];
       this.Is_loaded = true
       this.Is_register = true
@@ -283,7 +297,7 @@ export default {
       const tyArgs = utils.tx.encodeStructTypeTags(strTypeArgs)
       const args = [
         this.domain,
-
+        this.Receive_owner
       ]
       let hash = send_transaction_arg(functionId, tyArgs, args);
       console.log(hash)

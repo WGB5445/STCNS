@@ -12,8 +12,8 @@
           <n-gi span="9">
             <n-input-group style="height: 100px;">
               <n-divider vertical />
-              <input  placeholder="输入域名或地址" style="height: 100px; width: inherit ; font-size:30px;background-color:transparent;border:0; outline: none"/>
-              <n-button color="#8a2be2"  style="height: 100px;width: 150px ; font-size: 30px">搜索</n-button>
+              <input  v-model="click_domainn" placeholder="输入域名或地址" style="height: 100px; width: inherit ; font-size:30px;background-color:transparent;border:0; outline: none"/>
+              <n-button color="#8a2be2"  style="height: 100px;width: 150px ; font-size: 30px" @click="Com = 'Sreach'" >搜索</n-button>
             </n-input-group>
           </n-gi>
         </n-grid>
@@ -42,7 +42,7 @@
 
             </n-card>
             <n-anchor-link style="font-size: 25px" title="我的账户"  @click="Com = 'Myaccount'"/>
-            <n-anchor-link  style="font-size: 25px"  title="搜索" @click="Com = 'Sreach'" />
+<!--            <n-anchor-link  style="font-size: 25px"  title="搜索" @click="Com = 'Sreach'" />-->
             <n-anchor-link  style="font-size: 25px"  title="转账" @click="Com = 'Payfor'" />
             <n-anchor-link  style="font-size: 25px"  title="关于" @click="Com = 'about'" />
 
@@ -51,7 +51,7 @@
 
         <n-layout content-style="padding: 24px;">
           <Myaccount v-if="Com == 'Myaccount'" :User.sync="User" :module.sync="module" :admin = "admin" @click_domain="click_domain" />
-          <Sreach v-if="Com == 'Sreach'" :User.sync="User" :module.sync="module" :admin = "admin" />
+          <Sreach v-if="Com == 'Sreach'" :User.sync="User" :module.sync="module" :admin = "admin" :domain.sync="click_domainn"/>
           <Pay_for v-if="Com == 'Payfor'" :User.sync="User" :module.sync="module" :admin = "admin" />
           <Register v-if="Com == 'Register'" :User.sync="User" :module.sync="module" :admin = "admin" />
           <Details v-if="Com == 'Details'" :User.sync="User" :module.sync="module" :admin = "admin"  :domain.sync="click_domainn" />
