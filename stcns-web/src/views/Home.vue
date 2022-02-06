@@ -153,3 +153,27 @@ export default {
 
 }
 </script>
+<style>
+.N{
+  position: relative;
+  margin: 10px 5px 10px 5px;
+  float: left;
+  top: 12.5px;
+  left: 10px;
+  width: 63px;
+  height: 125px;
+  border-width: 0 15px 0px 15px;
+  border-color: #9aff02;
+  border-style: solid;
+}
+.N before {
+  transform: skew(30deg,0);
+  position: absolute;
+  content: '';
+  top: 0;
+  left: 24px;
+  width: 15px;
+  height: 125px;
+  background-color: #9aff02;
+}
+</style>

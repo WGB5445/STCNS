@@ -154,7 +154,7 @@
           该域名被已经注册
         </div>
         <div v-else>
-          
+          <Register :User.sync="User" :module.sync="module" :admin = "admin" :domain.sync="domain"/>
         </div>
       </div>
       <div v-if="Com == 'subdomain'">
@@ -180,7 +180,7 @@
 <script>
 import {call, send_transaction_arg} from "../utils/starcoin";
 import {utils} from "@starcoin/starcoin";
-
+import Register from '../components/Register.vue'
 export default {
   name: "Details",
   props: {
@@ -190,6 +190,11 @@ export default {
       account:"",
     },
     domain:"",
+
+  },
+  components: {
+
+    Register,
 
   },
   data(){

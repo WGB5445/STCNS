@@ -7,10 +7,10 @@
     <n-input-group-label>Amount of STC</n-input-group-label>
     <n-input v-model:value="Amount" :style="{ width: '33%' }" />
   </n-input-group>
-  <n-input-group>
-    <n-input-group-label>超时时间(秒数)</n-input-group-label>
-    <n-input v-model:value="Time" :style="{ width: '33%' }" />
-  </n-input-group>
+<!--  <n-input-group>-->
+<!--    <n-input-group-label>超时时间(秒数)</n-input-group-label>-->
+<!--    <n-input v-model:value="Time" :style="{ width: '33%' }" />-->
+<!--  </n-input-group>-->
   <n-input-group>
 
       <n-button @click="Send_to">

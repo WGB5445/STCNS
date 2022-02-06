@@ -1162,6 +1162,12 @@ address 0xc17e245c8ce8dcfe56661fa2796c98cf {
             return info
 
         }
+        public fun Get_Domain_Price(domain:&vector<u8>,year:u64):u128{
+            assert(Is_Admin_init(), ERR_ADMIN_IS_NOT_INIT);
+            assert(Is_Root_Domain(domain),ERR_DOMAIN_IS_NOT_ROOT);
+            let much = get_much_Doamin(domain)* (year as u128) ;
+            return much
+        }
 //      admin
         public fun Is_Admin(addr:address):bool{
             return ADMAIN_ADDRESS == addr
@@ -1286,6 +1292,9 @@ address 0xc17e245c8ce8dcfe56661fa2796c98cf {
 
         public (script) fun get_Owner_all_domain(addr:address):STCNS::STCNS_Info1{
             return STCNS::Get_Owner_all_domain(addr)
+        }
+        public (script) fun get_domain_price(domain:vector<u8>,year:u64):u128{
+            return STCNS::Get_Domain_Price(&domain,year)
         }
 
 //      admin
