@@ -114,8 +114,8 @@ export default {
 
           admin:"0xc17e245c8ce8dcfe56661fa2796c98cf",
           module:'0xc17e245c8ce8dcfe56661fa2796c98cf::STCNS_script',
-          name: "Tim",
-          private_key:'0x197f57cce853c9cb2616235afbeb4e92588e3f921bb894300c905d11e01806e2',
+          name: "",
+
           starcoinProvider:null,
           starcoin:null,
 
