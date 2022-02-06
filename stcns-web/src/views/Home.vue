@@ -7,7 +7,7 @@
       <n-layout-header position="absolute" style="height: 150px; padding: 24px; background-color: white  "  >
         <n-grid  :cols="12">
           <n-gi span="3">
-
+            <n-gradient-text type="info"> SNS </n-gradient-text>
           </n-gi>
           <n-gi span="9">
             <n-input-group style="height: 100px;">
@@ -55,6 +55,7 @@
           <Pay_for v-if="Com == 'Payfor'" :User.sync="User" :module.sync="module" :admin = "admin" />
           <Register v-if="Com == 'Register'" :User.sync="User" :module.sync="module" :admin = "admin" />
           <Details v-if="Com == 'Details'" :User.sync="User" :module.sync="module" :admin = "admin"  :domain.sync="click_domainn" />
+          <About v-if="Com == 'about'" />
         </n-layout>
       </n-layout>
 
@@ -79,6 +80,7 @@ import Myaccount from '@/components/Myaccount.vue'
 import Pay_for from '@/components/Pay_for.vue'
 import Register from '@/components/Register.vue'
 import Details from '@/components/Details.vue'
+import About from  '@/views/About.vue'
 import {get_account,get_id, send_transaction,send_transaction_arg,call} from '../utils/starcoin.js'
 export default {
   name: 'Home',
@@ -88,7 +90,8 @@ export default {
     Myaccount,
     Pay_for,
     Register,
-    Details
+    Details,
+    About,
   },
 
   async created() {
@@ -154,26 +157,7 @@ export default {
 }
 </script>
 <style>
-.N{
-  position: relative;
-  margin: 10px 5px 10px 5px;
-  float: left;
-  top: 12.5px;
-  left: 10px;
-  width: 63px;
-  height: 125px;
-  border-width: 0 15px 0px 15px;
-  border-color: #9aff02;
-  border-style: solid;
-}
-.N before {
-  transform: skew(30deg,0);
-  position: absolute;
-  content: '';
-  top: 0;
-  left: 24px;
-  width: 15px;
-  height: 125px;
-  background-color: #9aff02;
+.n-gradient-text {
+  font-size: 36px;
 }
 </style>
